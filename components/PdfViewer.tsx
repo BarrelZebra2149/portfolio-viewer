@@ -1,18 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Document, Page, Thumbnail, pdfjs } from "react-pdf";
+import dynamic from "next/dynamic";
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
 import { DEFAULT_PDF, PROJECTS, projectOfPage } from "@/lib/portfolio";
 import HighlightPanel, { type Card } from "./HighlightPanel";
 
-// workerSrc는 react-pdf 컴포넌트를 쓰는 이 파일에서 직접 지정해야 한다.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
+// PDF.js를 쓰는 부분만 브라우저에서 따로 불러온다. 위쪽 도구 줄과 목록은 바로 보인다.
+const StageDocument = dynamic(() => import("./pdf/StageDocument"), { ssr: false, loading: () => null });
+const ThumbRail = dynamic(() => import("./pdf/ThumbRail"), { ssr: false, loading: () => null });
 
 const MAX_RADIUS = 14;
 
@@ -47,38 +43,6 @@ function applyCite(root: Element, cited: string): boolean {
 function initialPage(): number {
   const p = Number(new URLSearchParams(window.location.search).get("p"));
   return Number.isInteger(p) && p > 0 ? p : 1;
-}
-
-function LazyThumb({ n, active, onClick }: { n: number; active: boolean; onClick: () => void }) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setSeen(true);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "200px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return (
-    <button
-      ref={ref}
-      className={`thumb${active ? " on" : ""}`}
-      onClick={onClick}
-      aria-label={`${n}쪽으로 이동`}
-      aria-current={active ? "page" : undefined}
-    >
-      {seen && <Thumbnail pageNumber={n} width={196} onItemClick={() => onClick()} />}
-      <span className="num">{n}</span>
-    </button>
-  );
 }
 
 export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) {
@@ -472,13 +436,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           )
         )}
         <h2>쪽</h2>
-        <Document file={source} loading={null} error={null} noData={null}>
-          <div className="thumbs">
-            {doc && Array.from({ length: numPages }, (_, i) => i + 1).map((n) => (
-              <LazyThumb key={n} n={n} active={n === page} onClick={() => go(n)} />
-            ))}
-          </div>
-        </Document>
+        <ThumbRail file={source} page={page} onGo={go} />
       </nav>
 
       <main className="stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -490,31 +448,17 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           </div>
         ) : null}
         {hlOpen && isDefault && <HighlightPanel onPick={pickCard} onClose={() => setHlOpen(false)} />}
-        <Document
+        <StageDocument
           file={source}
+          numPages={numPages}
+          layers={layers}
+          visibleN={visibleN}
+          pageWidth={pageWidth}
+          textRenderer={textRenderer}
+          renderHandler={renderHandler}
           onLoadSuccess={onDocLoaded}
           onLoadError={onDocError}
-          loading={null}
-          error={null}
-          externalLinkTarget="_blank"
-          externalLinkRel="noopener noreferrer"
-        >
-          {numPages > 0 && (
-            <div className="sheetstack">
-              {layers.map((n) => (
-                <div key={n} className={`sheet${n === visibleN ? "" : " pending"}`} aria-hidden={n === visibleN ? undefined : true}>
-                  <Page
-                    pageNumber={n}
-                    width={pageWidth}
-                    customTextRenderer={textRenderer}
-                    loading={null}
-                    onRenderSuccess={renderHandler(n)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </Document>
+        />
       </main>
     </div>
   );

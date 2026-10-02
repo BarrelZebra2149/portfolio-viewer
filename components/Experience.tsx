@@ -1,26 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import Intro from "./Intro";
+import PdfViewer from "./PdfViewer";
 import { DEFAULT_PDF } from "@/lib/portfolio";
-
-// PDF.js는 브라우저에서만 동작하므로 서버 렌더링을 끈다.
-const PdfViewer = dynamic(() => import("./PdfViewer"), {
-  ssr: false,
-  loading: () => (
-    <div className="viewer">
-      <header className="topbar" />
-      <div className="rail" />
-      <div className="stage">
-        <div className="loading">
-          <span className="spin" aria-hidden />
-          PDF를 불러오는 중입니다…
-        </div>
-      </div>
-    </div>
-  ),
-});
 
 type Stage = "intro" | "viewer";
 const SEEN_KEY = "cs-intro-seen";
@@ -43,7 +26,8 @@ export default function Experience() {
   // 인트로를 읽는 동안 뷰어 코드와 PDF 파일을 미리 받아 둔다.
   useEffect(() => {
     if (stage !== "intro") return;
-    void import("./PdfViewer");
+    void import("./pdf/StageDocument");
+    void import("./pdf/ThumbRail");
     fetch(DEFAULT_PDF).catch(() => {});
   }, [stage]);
 
