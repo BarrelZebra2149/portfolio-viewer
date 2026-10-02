@@ -71,6 +71,8 @@ async function pageSnippets(pdf: PDFDocumentProxy, onProgress: (i: number, total
     const text = content.items
       .map((it) => ("str" in it ? it.str : ""))
       .join(" ")
+      // 제어 문자·기호 글꼴 문자는 서버에서도 걸러 내지만 미리 줄여 둔다.
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F-]/g, " ")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 160);

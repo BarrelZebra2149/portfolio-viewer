@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { clientIp, fail, makeClient, openStream, rateLimited, sameOrigin } from "@/lib/serverShared";
+import { cleanText, clientIp, fail, makeClient, openStream, rateLimited, sameOrigin } from "@/lib/serverShared";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
   for (let i = 0; i < raw.length; i++) {
     const p = raw[i] as { n?: unknown; text?: unknown };
     if (p?.n !== i + 1 || typeof p.text !== "string") return fail(400, "쪽 정보가 올바르지 않습니다.");
-    const text = p.text.slice(0, MAX_TEXT_PER_PAGE);
+    const text = cleanText(p.text).slice(0, MAX_TEXT_PER_PAGE);
     total += text.length;
     pages.push({ n: p.n, text });
   }
@@ -104,6 +104,7 @@ export async function POST(req: Request) {
   } catch (e) {
     const status = (e as { status?: number })?.status;
     console.error("outline error", status, (e as Error)?.message);
+    if (status === 400) return fail(422, "문서의 글자를 처리하지 못했습니다. 다른 파일로 시도해 주세요.");
     return fail(status === 429 ? 429 : 502, "목차를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.");
   }
 }

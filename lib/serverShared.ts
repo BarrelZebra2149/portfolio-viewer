@@ -74,6 +74,16 @@ export function openStream(client: Anthropic, { system, messages, maxTokens }: P
   return { model, stream };
 }
 
+// PDF에서 뽑은 글자에는 제어 문자, 짝 없는 서로게이트, 기호 글꼴의 사설 영역 문자가 섞일 수 있다.
+// 이런 글자가 있으면 API가 요청 본문을 JSON으로 읽지 못해 거절하므로 보내기 전에 걸러 낸다.
+export function cleanText(s: string): string {
+  return s
+    .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, " ")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F-￾￿]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function pdfDocumentBlock(data: string, title: string): Anthropic.DocumentBlockParam {
   return {
     type: "document",
