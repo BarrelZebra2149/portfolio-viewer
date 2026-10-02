@@ -6,6 +6,7 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { DEFAULT_PDF, PROJECTS, projectOfPage } from "@/lib/portfolio";
+import HighlightPanel, { type Card } from "./HighlightPanel";
 
 // workerSrc는 react-pdf 컴포넌트를 쓰는 이 파일에서 직접 지정해야 한다.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -13,12 +14,35 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+const MAX_RADIUS = 14;
+
 type Source = string | File;
 type OutlineEntry = { title: string; page: number | null };
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// 근거 문장(cited)을 쪽의 글자 층에서 찾아 해당 글줄을 칠한다. 공백 차이는 무시한다.
+function applyCite(root: Element, cited: string): boolean {
+  root.querySelectorAll(".cite").forEach((el) => el.classList.remove("cite"));
+  const spans = Array.from(root.querySelectorAll("span")).filter((s) => !s.querySelector("span"));
+  let full = "";
+  const owner: number[] = [];
+  spans.forEach((s, i) => {
+    for (const ch of s.textContent ?? "") {
+      if (!/\s/.test(ch)) {
+        full += ch;
+        owner.push(i);
+      }
+    }
+  });
+  const needle = cited.replace(/\s+/g, "");
+  const at = needle ? full.indexOf(needle) : -1;
+  if (at < 0) return false;
+  for (let i = owner[at]; i <= owner[at + needle.length - 1]; i++) spans[i].classList.add("cite");
+  return true;
+}
 
 function initialPage(): number {
   const p = Number(new URLSearchParams(window.location.search).get("p"));
@@ -65,6 +89,8 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   // 화면에 실제로 보이는 쪽. 새 쪽이 다 그려질 때까지 이전 쪽을 그대로 보여 준다.
   const [shown, setShown] = useState<number>(page);
   const [rendered, setRendered] = useState<ReadonlySet<number>>(() => new Set());
+  // 백그라운드에서 미리 그려 둘 범위(현재 쪽 기준 앞뒤 쪽 수). 한가할 때 조금씩 넓힌다.
+  const [radius, setRadius] = useState(1);
   const [aspect, setAspect] = useState(16 / 9);
   const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
   const [pageInput, setPageInput] = useState("");
@@ -76,6 +102,8 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const [hitIdx, setHitIdx] = useState(0);
   const [searching, setSearching] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [hlOpen, setHlOpen] = useState(false);
+  const [cite, setCite] = useState<{ page: number; text: string } | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -121,11 +149,39 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const layers = useMemo(() => {
     const s = new Set<number>([shown, page]);
     if (numPages) {
-      if (page > 1) s.add(page - 1);
-      if (page < numPages) s.add(page + 1);
+      for (let d = 1; d <= radius; d++) {
+        if (page - d >= 1) s.add(page - d);
+        if (page + d <= numPages) s.add(page + d);
+      }
     }
     return [...s].filter((n) => n >= 1 && (!numPages || n <= numPages)).sort((x, y) => x - y);
-  }, [shown, page, numPages]);
+  }, [shown, page, numPages, radius]);
+
+  // 지금 범위의 쪽이 모두 그려지면 잠시 뒤 범위를 한 칸 넓힌다(최대 약 29쪽, 메모리 보호).
+  useEffect(() => {
+    if (!numPages || radius >= MAX_RADIUS) return;
+    if (!layers.every((n) => rendered.has(n))) return;
+    const id = window.setTimeout(() => setRadius((r) => Math.min(r + 1, MAX_RADIUS)), 200);
+    return () => window.clearTimeout(id);
+  }, [layers, rendered, radius, numPages]);
+
+  // 핵심 카드를 눌러 이동하면 해당 쪽이 그려진 뒤 근거 문장을 칠한다.
+  useEffect(() => {
+    if (!cite) return;
+    if (visibleN !== cite.page) return;
+    let tries = 0;
+    let id = 0;
+    const attempt = () => {
+      const root = document.querySelector(".sheetstack .sheet:not(.pending) .react-pdf__Page__textContent");
+      if (root && root.querySelector("span") && applyCite(root, cite.text)) return;
+      if (++tries < 30) id = window.setTimeout(attempt, 100);
+    };
+    attempt();
+    return () => window.clearTimeout(id);
+  }, [cite, visibleN, rendered]);
+  useEffect(() => {
+    if (cite && page !== cite.page) setCite(null);
+  }, [page, cite]);
 
   const go = useCallback(
     (n: number) => {
@@ -267,6 +323,12 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     [activeQuery],
   );
 
+  function pickCard(card: Card) {
+    setHlOpen(false);
+    setCite({ page: card.page, text: card.cited });
+    go(card.page);
+  }
+
   function openFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     e.target.value = "";
@@ -282,6 +344,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setPage(1);
     setShown(1);
     setRendered(new Set());
+    setRadius(1);
     handlers.current.clear();
     setSource(f);
   }
@@ -294,6 +357,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setPage(1);
     setShown(1);
     setRendered(new Set());
+    setRadius(1);
     handlers.current.clear();
     setSource(DEFAULT_PDF);
   }
@@ -351,6 +415,11 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
             {searching ? "찾는 중…" : activeQuery ? (hasHits ? `${hitIdx + 1}/${hits.length}쪽` : "결과 없음") : ""}
           </span>
         </form>
+        {isDefault && (
+          <button className="iconbtn strong" onClick={() => setHlOpen(true)}>
+            핵심 보기
+          </button>
+        )}
         <button className="iconbtn" onClick={() => fileInput.current?.click()}>
           PDF 열기
         </button>
@@ -420,6 +489,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
             {rendered.size ? "" : "PDF를 불러오는 중입니다…"}
           </div>
         ) : null}
+        {hlOpen && isDefault && <HighlightPanel onPick={pickCard} onClose={() => setHlOpen(false)} />}
         <Document
           file={source}
           onLoadSuccess={onDocLoaded}

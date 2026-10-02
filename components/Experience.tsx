@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import Intro from "./Intro";
+import { DEFAULT_PDF } from "@/lib/portfolio";
 
 // PDF.js는 브라우저에서만 동작하므로 서버 렌더링을 끈다.
 const PdfViewer = dynamic(() => import("./PdfViewer"), {
@@ -38,6 +39,13 @@ export default function Experience() {
     const hasPageParam = new URLSearchParams(window.location.search).has("p");
     setStage(seen || hasPageParam ? "viewer" : "intro");
   }, []);
+
+  // 인트로를 읽는 동안 뷰어 코드와 PDF 파일을 미리 받아 둔다.
+  useEffect(() => {
+    if (stage !== "intro") return;
+    void import("./PdfViewer");
+    fetch(DEFAULT_PDF).catch(() => {});
+  }, [stage]);
 
   function enterViewer() {
     try {

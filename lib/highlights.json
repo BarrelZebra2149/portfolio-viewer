@@ -1,0 +1,159 @@
+{
+  "groups": [
+    {
+      "id": "intro",
+      "title": "소개 · 기술 스택",
+      "cards": [
+        {
+          "id": "intro-seeker",
+          "title": "새로운 방식도 시도하는 사람",
+          "summary": "새 방식을 부담스러워 하지 않고 문제를 해결합니다.",
+          "page": 2,
+          "cited": "새로운 방식도 시도하는 것을 부담스러워 하지 않는 사람입니다."
+        },
+        {
+          "id": "intro-stack",
+          "title": "사용한 기술",
+          "summary": "Spring Boot로 API와 DB를 설계했습니다.",
+          "page": 4,
+          "cited": "Spring Boot로 API와 DB를 설계했습니다."
+        }
+      ]
+    },
+    {
+      "id": "argus",
+      "title": "ARGUS",
+      "cards": [
+        {
+          "id": "argus-role",
+          "title": "폭주를 일으키는 피해자 앱을 맡음",
+          "summary": "ARGUS를 모른 채 환경변수 하나로 로컬 mock과 dev 게이트웨이를 오갑니다.",
+          "page": 5,
+          "cited": "이 앱은 Argus를 모른 채 환경변수 하나로 로컬 mock과 dev 게이트웨이를 오갑니다."
+        },
+        {
+          "id": "argus-header",
+          "title": "응답 헤더를 먼저 보고 차단 판별",
+          "summary": "게이트웨이가 오류 본문을 감싸 결정 ID가 안 보여서 판별 방식을 바꿨습니다.",
+          "page": 6,
+          "cited": "응답 헤더를 먼저 보고 차단을 판별합니다."
+        },
+        {
+          "id": "argus-result",
+          "title": "dev에서 실제 차단 확인",
+          "summary": "403 실차단이 확인됐고 결정 ID가 화면까지 전달됐습니다.",
+          "page": 7,
+          "cited": "dev 게이트웨이에서 403 실차단이 확인됐고,"
+        }
+      ]
+    },
+    {
+      "id": "ecoreport",
+      "title": "EcoReport",
+      "cards": [
+        {
+          "id": "eco-role",
+          "title": "AI 판별 서버와 백엔드 연동 담당",
+          "summary": "사진 한 장으로 전기 낭비를 제보하는 서비스의 AI 서버를 맡았습니다.",
+          "page": 8,
+          "cited": "저는 AI 판별 서버와 백엔드 연동을 맡았습니다."
+        },
+        {
+          "id": "eco-flow",
+          "title": "3단계로 걸러 AI 호출을 줄임",
+          "summary": "사람이 있거나 강의실이 아니면 Gemini를 부르지 않고 끝냅니다.",
+          "page": 9,
+          "cited": "사람이 있거나 강의실이 아니면 Gemini 호출 없이 종료합니다."
+        },
+        {
+          "id": "eco-model",
+          "title": "에어컨 탐지 모델 검증 결과",
+          "summary": "2,016장으로 직접 학습해 mAP@0.5 약 0.99를 얻었습니다.",
+          "page": 10,
+          "cited": "에어컨 탐지 모델을 2,016장으로 학습해"
+        }
+      ]
+    },
+    {
+      "id": "server",
+      "title": "Server Manager",
+      "cards": [
+        {
+          "id": "server-solo",
+          "title": "GPU 서버 7대를 혼자 구축·운영",
+          "summary": "학내에 아는 사람이 없어 혼자 구축하고 절차를 문서로 남겼습니다.",
+          "page": 11,
+          "cited": "학내에 Linux 네트워크 설정을 아는 사람이 없어"
+        },
+        {
+          "id": "server-gpu",
+          "title": "GPU가 멈추던 원인을 찾음",
+          "summary": "커널 파라미터가 /boot/grub 폴더가 없어 적용되지 않던 점을 해결했습니다.",
+          "page": 13,
+          "cited": "커널 파라미터가 /boot/grub 폴더가 없어 적용되지"
+        },
+        {
+          "id": "server-recovery",
+          "title": "삭제된 프로젝트를 복구",
+          "summary": "이름 없는 조각 파일을 awk 조건 검색으로 골라 핵심 소스를 찾았습니다.",
+          "page": 14,
+          "cited": "이름 없는 조각 파일을 awk 조건 검색"
+        }
+      ]
+    },
+    {
+      "id": "drawmind",
+      "title": "DRAWMIND",
+      "cards": [
+        {
+          "id": "draw-role",
+          "title": "팀장 · DB 설계 · 백엔드",
+          "summary": "기획서를 정리하고 Spring Boot와 PostgreSQL 백엔드를 맡았습니다.",
+          "page": 15,
+          "cited": "저는 팀장으로 기획서를 정리하고 DB 설계와"
+        },
+        {
+          "id": "draw-api",
+          "title": "API 정의서를 먼저 작성",
+          "summary": "프론트와 백엔드가 나눠 개발하기 전에 요청·응답 규칙을 문서로 정했습니다.",
+          "page": 16,
+          "cited": "API 정의서를 먼저 작성했습니다."
+        },
+        {
+          "id": "draw-limit",
+          "title": "한계와 개선",
+          "summary": "비밀번호 해시와 토큰 인증이 없었고, 이후 EcoReport에서 적용했습니다.",
+          "page": 17,
+          "cited": "비밀번호 해시와 토큰 인증이 없었습니다."
+        }
+      ]
+    },
+    {
+      "id": "aeye",
+      "title": "AEye",
+      "cards": [
+        {
+          "id": "aeye-role",
+          "title": "처리 시간 개선 담당",
+          "summary": "Depth 모델 연동과 병렬 추론 구조를 만들었습니다.",
+          "page": 18,
+          "cited": "저는 처리 시간 개선을 맡아 Depth 모델 연동과"
+        },
+        {
+          "id": "aeye-interview",
+          "title": "시각장애인 인터뷰로 기능 확인",
+          "summary": "개발 전 팀원 모두 인터뷰에 참여해 필요한 기능을 확인했습니다.",
+          "page": 18,
+          "cited": "개발 전 팀원 모두 시각장애인 인터뷰에 참여해"
+        },
+        {
+          "id": "aeye-result",
+          "title": "프레임당 약 3.6초에서 평균 830ms로",
+          "summary": "세 모델을 병렬 추론으로 돌려 프레임당 시간을 줄였습니다.",
+          "page": 19,
+          "cited": "순차 합산 약 3.6초 → 평균 830ms"
+        }
+      ]
+    }
+  ]
+}
