@@ -901,3 +901,31 @@ button {
 .modal-card .intro-actions {
   margin-top: 8px;
 }
+
+/* ---------- 카드 글자 넘침 방지, 썸네일 흰 띠 제거 ---------- */
+.hl-cards {
+  grid-auto-rows: max-content;
+}
+.hl-card {
+  min-height: 0;
+  overflow: hidden;
+}
+.hl-card strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.hl-sum {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.thumb {
+  width: fit-content;
+  max-width: 100%;
+  background: transparent;
+}

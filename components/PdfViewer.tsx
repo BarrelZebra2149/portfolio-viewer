@@ -618,6 +618,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
         {hlOpen && !isDefault && aiCards && (
           <HighlightPanel
             groups={[{ id: "ai", title: "AI가 고른 핵심", cards: aiCards }]}
+            memoryKey={source instanceof File ? `${source.name}-${source.size}-${source.lastModified}` : "u"}
             note="올린 문서에서 AI가 고른 핵심입니다. AI가 만든 내용이므로 근거 쪽에서 원문을 확인하세요."
             onPick={pickCard}
             onClose={() => setHlOpen(false)}

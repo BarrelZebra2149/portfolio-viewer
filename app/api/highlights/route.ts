@@ -17,9 +17,18 @@ export const maxDuration = 60;
 type Card = { id: string; title: string; summary: string; page: number; cited: string };
 
 const INSTRUCTION =
-  "이 문서에서 독자가 꼭 알아야 할 핵심 내용을 6~8개 고르세요. 각각 한 문장(60자 이내)으로 쓰고, 문장마다 문서에서 근거를 인용하세요. 번호나 글머리 기호, 서론 없이 문장만 줄바꿈으로 구분하세요.";
+  "이 문서에서 독자가 꼭 알아야 할 핵심 내용을 6~8개 고르세요. 각각 한 문장(40자 이내)으로 쓰고, 문장마다 문서에서 근거를 인용하세요. 번호나 글머리 기호, 서론 없이 문장만 줄바꿈으로 구분하세요.";
 
 const oneLine = (s: string) => s.replace(/\s+/g, " ").trim();
+
+// 원문 인용 앞부분을 글머리 기호를 빼고 한두 줄 길이로 줄인다.
+function gist(s: string, max = 90): string {
+  const t = oneLine(s).replace(/^[\s\u2022\u25aa\u25cf\u27a2\u27a4\u2192\u00b7-]+/, "");
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const sp = cut.lastIndexOf(" ");
+  return (sp > max * 0.6 ? cut.slice(0, sp) : cut) + "…";
+}
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail(403, "허용되지 않은 요청입니다.");
@@ -56,11 +65,11 @@ export async function POST(req: Request) {
       const title = oneLine(String(block.text ?? "")).replace(/^[-•*\d.)\s]+/, "");
       if (!c || title.length < 4) continue;
       const cited = String(c.cited_text ?? "");
-      const summary = oneLine(cited);
+      const summary = gist(cited);
       cards.push({
         id: `ai-${cards.length}`,
-        title: title.slice(0, 80),
-        summary: summary.length > 140 ? summary.slice(0, 140) + "…" : summary,
+        title: title.slice(0, 60),
+        summary,
         page: c.start_page_number,
         cited,
       });

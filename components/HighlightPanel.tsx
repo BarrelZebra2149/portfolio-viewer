@@ -7,6 +7,9 @@ export type Card = { id: string; title: string; summary: string; page: number; c
 export type Group = { id: string; title: string; cards: Card[] };
 
 const DEFAULT_GROUPS = data.groups as Group[];
+
+// 올린 문서는 브라우저 저장소를 쓰지 않고, 파일을 열어 둔 동안만 메모리에 읽음 표시를 기억한다.
+const MEMORY = new Map<string, { read: string[]; last: string | null }>();
 const READ_KEY = "cs-read-cards";
 const LAST_KEY = "cs-last-group";
 
@@ -32,12 +35,14 @@ export default function HighlightPanel({
   onClose,
   groups,
   note,
+  memoryKey,
 }: {
   onPick: (card: Card) => void;
   onClose: () => void;
   // 직접 올린 문서에서 AI가 만든 핵심을 보여 줄 때만 넘긴다. 이 경우 읽음 기록은 저장하지 않는다.
   groups?: Group[];
   note?: string;
+  memoryKey?: string;
 }) {
   const GROUPS = groups ?? DEFAULT_GROUPS;
   const persist = !groups;
@@ -46,7 +51,15 @@ export default function HighlightPanel({
   const [active, setActive] = useState(GROUPS[0].id);
 
   useEffect(() => {
-    if (!persist) return;
+    if (!persist) {
+      const m = memoryKey ? MEMORY.get(memoryKey) : undefined;
+      if (m) {
+        setRead(m.read);
+        setLast(m.last);
+        if (m.last && GROUPS.some((g) => g.id === m.last)) setActive(m.last);
+      }
+      return;
+    }
     const r = loadRead();
     const l = loadLast();
     setRead(r);
@@ -71,6 +84,7 @@ export default function HighlightPanel({
     setRead(next);
     setLast(group.id);
     if (!persist) {
+      if (memoryKey) MEMORY.set(memoryKey, { read: next, last: group.id });
       onPick(card);
       return;
     }
@@ -123,7 +137,7 @@ export default function HighlightPanel({
                   <span className="hl-page">{c.page}쪽</span>
                   {isRead && <span className="hl-check" aria-label="읽음">✓ 읽음</span>}
                 </span>
-                <strong>{c.title}</strong>
+                <strong style={{ fontSize: c.title.length > 44 ? 14.5 : c.title.length > 28 ? 15.5 : 17 }}>{c.title}</strong>
                 <span className="hl-sum">{c.summary}</span>
               </button>
             );
