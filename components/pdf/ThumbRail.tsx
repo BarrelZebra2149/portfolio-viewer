@@ -10,7 +10,10 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-function LazyThumb({ n, active, onClick }: { n: number; active: boolean; onClick: () => void }) {
+const THUMB_W = 196;
+
+// 아직 그려지지 않은 썸네일도 완성됐을 때와 같은 높이를 차지하게 해서, 스크롤 중 목록 높이가 변하며 위치가 튀지 않게 한다.
+function LazyThumb({ n, active, onClick, ratio }: { n: number; active: boolean; onClick: () => void; ratio: number }) {
   const ref = useRef<HTMLButtonElement>(null);
   const [seen, setSeen] = useState(false);
   useEffect(() => {
@@ -32,11 +35,12 @@ function LazyThumb({ n, active, onClick }: { n: number; active: boolean; onClick
     <button
       ref={ref}
       className={`thumb${active ? " on" : ""}`}
+      style={{ width: THUMB_W + 4, height: Math.round(THUMB_W / ratio) + 4, minHeight: 0, overflow: "hidden" }}
       onClick={onClick}
       aria-label={`${n}쪽으로 이동`}
       aria-current={active ? "page" : undefined}
     >
-      {seen && <Thumbnail pageNumber={n} width={196} onItemClick={() => onClick()} />}
+      {seen && <Thumbnail pageNumber={n} width={THUMB_W} loading={null} onItemClick={() => onClick()} />}
       <span className="num">{n}</span>
     </button>
   );
@@ -55,20 +59,30 @@ export default function ThumbRail({
   range?: [number, number];
 }) {
   const [numPages, setNumPages] = useState(0);
+  const [ratio, setRatio] = useState(16 / 9);
   return (
     <Document
       file={file}
       loading={null}
       error={null}
       noData={null}
-      onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
+      onLoadSuccess={(pdf) => {
+        setNumPages(pdf.numPages);
+        pdf
+          .getPage(1)
+          .then((pg) => {
+            const v = pg.getViewport({ scale: 1 });
+            if (v.width > 0 && v.height > 0) setRatio(v.width / v.height);
+          })
+          .catch(() => {});
+      }}
       onLoadError={() => setNumPages(0)}
     >
       <div className="thumbs">
         {Array.from({ length: numPages }, (_, i) => i + 1)
           .filter((n) => !range || (n >= range[0] && n <= range[1]))
           .map((n) => (
-            <LazyThumb key={n} n={n} active={n === page} onClick={() => onGo(n)} />
+            <LazyThumb key={n} n={n} active={n === page} onClick={() => onGo(n)} ratio={ratio} />
           ))}
       </div>
     </Document>
