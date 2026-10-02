@@ -7,7 +7,18 @@ import Intro from "./Intro";
 // PDF.js는 브라우저에서만 동작하므로 서버 렌더링을 끈다.
 const PdfViewer = dynamic(() => import("./PdfViewer"), {
   ssr: false,
-  loading: () => <div className="status">뷰어를 불러오는 중입니다…</div>,
+  loading: () => (
+    <div className="viewer">
+      <header className="topbar" />
+      <div className="rail" />
+      <div className="stage">
+        <div className="loading">
+          <span className="spin" aria-hidden />
+          PDF를 불러오는 중입니다…
+        </div>
+      </div>
+    </div>
+  ),
 });
 
 type Stage = "intro" | "viewer";

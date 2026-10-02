@@ -62,6 +62,9 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState(0);
   const [page, setPage] = useState<number>(() => initialPage());
+  // 화면에 실제로 보이는 쪽. 새 쪽이 다 그려질 때까지 이전 쪽을 그대로 보여 준다.
+  const [shown, setShown] = useState<number>(page);
+  const [rendered, setRendered] = useState<ReadonlySet<number>>(() => new Set());
   const [aspect, setAspect] = useState(16 / 9);
   const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
   const [pageInput, setPageInput] = useState("");
@@ -80,6 +83,17 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
 
   const isDefault = source === DEFAULT_PDF;
 
+  // 쪽마다 고정된 콜백을 쓴다. 콜백이 매 렌더마다 바뀌면 react-pdf가 쪽을 다시 그린다.
+  const handlers = useRef(new Map<number, () => void>());
+  const renderHandler = (n: number) => {
+    let h = handlers.current.get(n);
+    if (!h) {
+      h = () => setRendered((prev) => (prev.has(n) ? prev : new Set(prev).add(n)));
+      handlers.current.set(n, h);
+    }
+    return h;
+  };
+
   // 화면 크기에 맞춰 쪽 크기를 정한다 (가로·세로 모두 넘치지 않게).
   useEffect(() => {
     const el = stageRef.current;
@@ -97,6 +111,21 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     const maxH = Math.max(120, stageSize.h - padY);
     return Math.floor(Math.min(maxW, maxH * aspect));
   }, [stageSize, aspect]);
+
+  // 보이는 쪽: 이미 그려진 쪽이면 바로 보여 주고, 아니면 이전 쪽을 그대로 둔다.
+  const visibleN = rendered.has(page) ? page : shown;
+  useEffect(() => {
+    if (rendered.has(page)) setShown(page);
+  }, [page, rendered]);
+  // 앞뒤 쪽을 화면 뒤에서 미리 그려 두면 넘길 때 기다리지 않는다.
+  const layers = useMemo(() => {
+    const s = new Set<number>([shown, page]);
+    if (numPages) {
+      if (page > 1) s.add(page - 1);
+      if (page < numPages) s.add(page + 1);
+    }
+    return [...s].filter((n) => n >= 1 && (!numPages || n <= numPages)).sort((x, y) => x - y);
+  }, [shown, page, numPages]);
 
   const go = useCallback(
     (n: number) => {
@@ -151,6 +180,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setNumPages(pdf.numPages);
     setLoadError("");
     setPage((p) => Math.min(Math.max(1, p), pdf.numPages));
+    setShown((p) => Math.min(Math.max(1, p), pdf.numPages));
     try {
       const first = await pdf.getPage(1);
       const v = first.getViewport({ scale: 1 });
@@ -250,6 +280,9 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setOutline([]);
     resetSearch();
     setPage(1);
+    setShown(1);
+    setRendered(new Set());
+    handlers.current.clear();
     setSource(f);
   }
 
@@ -259,6 +292,9 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setOutline([]);
     resetSearch();
     setPage(1);
+    setShown(1);
+    setRendered(new Set());
+    handlers.current.clear();
     setSource(DEFAULT_PDF);
   }
 
@@ -378,23 +414,34 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
 
       <main className="stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {loadError && <div className="status">{loadError}</div>}
+        {!loadError && (visibleN !== page || rendered.size === 0) ? (
+          <div className={`loading${rendered.size ? " corner" : ""}`} role="status" aria-live="polite">
+            <span className="spin" aria-hidden />
+            {rendered.size ? "" : "PDF를 불러오는 중입니다…"}
+          </div>
+        ) : null}
         <Document
           file={source}
           onLoadSuccess={onDocLoaded}
           onLoadError={onDocError}
-          loading={<div className="status">PDF를 불러오는 중입니다…</div>}
+          loading={null}
           error={null}
           externalLinkTarget="_blank"
           externalLinkRel="noopener noreferrer"
         >
           {numPages > 0 && (
-            <div className="sheet" key={`${page}-${pageWidth}`}>
-              <Page
-                pageNumber={page}
-                width={pageWidth}
-                customTextRenderer={textRenderer}
-                loading={<div className="status" style={{ width: pageWidth, height: pageWidth / aspect }}>쪽을 그리는 중…</div>}
-              />
+            <div className="sheetstack">
+              {layers.map((n) => (
+                <div key={n} className={`sheet${n === visibleN ? "" : " pending"}`} aria-hidden={n === visibleN ? undefined : true}>
+                  <Page
+                    pageNumber={n}
+                    width={pageWidth}
+                    customTextRenderer={textRenderer}
+                    loading={null}
+                    onRenderSuccess={renderHandler(n)}
+                  />
+                </div>
+              ))}
             </div>
           )}
         </Document>
