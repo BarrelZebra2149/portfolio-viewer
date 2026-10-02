@@ -40,6 +40,28 @@ function applyCite(root: Element, cited: string): boolean {
   return true;
 }
 
+// 로딩 표시가 잠깐 켜졌다 꺼지며 깜빡이지 않게: 켜기 전에 잠시 기다리고, 한 번 켜면 최소 시간 유지한다.
+function useHoldFlag(on: boolean, delay: number, hold: number): boolean {
+  const [shown, setShown] = useState(on && delay === 0);
+  const since = useRef(0);
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
+  useEffect(() => {
+    let id: number;
+    if (on) {
+      id = window.setTimeout(() => {
+        since.current = Date.now();
+        setShown(true);
+      }, delay);
+    } else if (shownRef.current) {
+      const left = Math.max(0, hold - (Date.now() - since.current));
+      id = window.setTimeout(() => setShown(false), left);
+    }
+    return () => window.clearTimeout(id);
+  }, [on, delay, hold]);
+  return on && delay === 0 ? true : shown;
+}
+
 function initialPage(): number {
   const p = Number(new URLSearchParams(window.location.search).get("p"));
   return Number.isInteger(p) && p > 0 ? p : 1;
@@ -109,6 +131,8 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   useEffect(() => {
     if (rendered.has(page)) setShown(page);
   }, [page, rendered]);
+  const loadingNow = !loadError && (visibleN !== page || rendered.size === 0);
+  const showLoading = useHoldFlag(loadingNow, rendered.size === 0 ? 0 : 150, 450);
   // 앞뒤 쪽을 화면 뒤에서 미리 그려 두면 넘길 때 기다리지 않는다.
   const layers = useMemo(() => {
     const s = new Set<number>([shown, page]);
@@ -441,12 +465,12 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
 
       <main className="stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {loadError && <div className="status">{loadError}</div>}
-        {!loadError && (visibleN !== page || rendered.size === 0) ? (
-          <div className={`loading${rendered.size ? " corner" : ""}`} role="status" aria-live="polite">
+        {showLoading && (
+          <div className="loading" role="status" aria-live="polite">
             <span className="spin" aria-hidden />
-            {rendered.size ? "" : "PDF를 불러오는 중입니다…"}
+            PDF를 불러오는 중입니다…
           </div>
-        ) : null}
+        )}
         {hlOpen && isDefault && <HighlightPanel onPick={pickCard} onClose={() => setHlOpen(false)} />}
         <StageDocument
           file={source}

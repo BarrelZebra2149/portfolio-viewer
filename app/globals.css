@@ -475,6 +475,8 @@ button {
   position: absolute;
   z-index: 5;
   inset: 0;
+  background: var(--bg);
+  animation: fadein 0.15s ease both;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -483,14 +485,7 @@ button {
   font-size: 15px;
   pointer-events: none;
 }
-.loading.corner {
-  inset: auto 14px 14px auto;
-  justify-content: flex-end;
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: #fff;
-  border: 1px solid var(--line);
-}
+
 .spin {
   width: 18px;
   height: 18px;
@@ -676,5 +671,14 @@ button {
   }
   .hl-body {
     padding: 0 14px 14px;
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

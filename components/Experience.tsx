@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Intro from "./Intro";
 import PdfViewer from "./PdfViewer";
+import ViewerSkeleton from "./ViewerSkeleton";
 import { DEFAULT_PDF } from "@/lib/portfolio";
 
 type Stage = "intro" | "viewer";
@@ -40,7 +41,7 @@ export default function Experience() {
     setStage("viewer");
   }
 
-  if (stage === null) return null;
+  if (stage === null) return <ViewerSkeleton />;
   if (stage === "intro") return <Intro onDone={enterViewer} />;
   return <PdfViewer onShowIntro={() => setStage("intro")} />;
 }
