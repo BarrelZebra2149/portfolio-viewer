@@ -17,9 +17,10 @@ export const maxDuration = 60;
 type Card = { id: string; title: string; summary: string; page: number; cited: string };
 
 const INSTRUCTION =
-  "이 문서에서 독자가 꼭 알아야 할 핵심 내용을 6~8개 고르세요. 각각 한 문장(40자 이내)으로 쓰고, 문장마다 문서에서 근거를 인용하세요. 번호나 글머리 기호, 서론 없이 문장만 줄바꿈으로 구분하세요.";
+  "이 문서에서 독자가 꼭 알아야 할 핵심 내용을 6~8개 고르세요. 각각 한 문장(40자 이내)으로 쓰고, 문장마다 문서에서 근거를 인용하세요. 문서에 적힌 사실만 그대로 옮기고, 문서에 없는 내용을 추측하거나 덧붙이지 마세요. 같은 문장이나 같은 근거를 반복하지 마세요. 번호나 글머리 기호, 서론 없이 문장만 줄바꿈으로 구분하세요.";
 
-const oneLine = (s: string) => s.replace(/\s+/g, " ").trim();
+// 글머리 기호 글꼴이 만드는 사설 영역 문자는 화면에서 네모로 보이므로 지운다.
+const oneLine = (s: string) => s.replace(/[-]/g, " ").replace(/\s+/g, " ").trim();
 
 // 원문 인용 앞부분을 글머리 기호를 빼고 한두 줄 길이로 줄인다.
 function gist(s: string, max = 90): string {
