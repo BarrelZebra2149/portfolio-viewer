@@ -1,55 +1,29 @@
 import Anthropic from "@anthropic-ai/sdk";
 import fs from "node:fs";
 import path from "node:path";
-import { LIMITS, SYSTEM_PROMPT, chatModel, supportsFallbackAndEffort } from "@/lib/chatConfig";
+import { GENERIC_SYSTEM_PROMPT, LIMITS, SYSTEM_PROMPT } from "@/lib/chatConfig";
+import {
+  checkUploadedPdf,
+  clientIp,
+  fail,
+  makeClient,
+  openStream,
+  pdfDocumentBlock,
+  rateLimited,
+  sameOrigin,
+} from "@/lib/serverShared";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
-// 환경변수로 들어온 기본 주소(ANTHROPIC_BASE_URL)에 영향받지 않도록 공식 주소를 직접 지정한다.
-function makeClient(): Anthropic | null {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
-  // CHAT_API_BASE는 로컬에서 가짜 서버로 화면을 시험할 때만 쓴다(실제 배포에서는 설정하지 않는다).
-  const baseURL = process.env.CHAT_API_BASE || "https://api.anthropic.com";
-  return new Anthropic({ apiKey, baseURL });
-}
-
-let pdfBase64: string | null = null;
+let portfolioB64: string | null = null;
 function portfolioPdf(): string {
-  if (!pdfBase64) {
-    pdfBase64 = fs.readFileSync(path.join(process.cwd(), "data", "portfolio.pdf")).toString("base64");
+  if (!portfolioB64) {
+    portfolioB64 = fs.readFileSync(path.join(process.cwd(), "data", "portfolio.pdf")).toString("base64");
   }
-  return pdfBase64;
-}
-
-// 서버리스 환경이라 완전하지 않은 최소한의 속도 제한(같은 인스턴스 안에서만 유지된다).
-const hits = new Map<string, number[]>();
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const list = (hits.get(ip) ?? []).filter((t) => now - t < 86_400_000);
-  const lastMinute = list.filter((t) => now - t < 60_000).length;
-  if (lastMinute >= LIMITS.perMinute || list.length >= LIMITS.perDay) {
-    hits.set(ip, list);
-    return true;
-  }
-  list.push(now);
-  hits.set(ip, list);
-  if (hits.size > 5000) hits.clear();
-  return false;
-}
-
-function sameOrigin(req: Request): boolean {
-  const origin = req.headers.get("origin");
-  const host = req.headers.get("host");
-  if (!origin || !host) return false;
-  try {
-    return new URL(origin).host === host;
-  } catch {
-    return false;
-  }
+  return portfolioB64;
 }
 
 function validate(body: unknown): ChatMsg[] | string {
@@ -73,16 +47,10 @@ function validate(body: unknown): ChatMsg[] | string {
   return out;
 }
 
-const fail = (status: number, error: string) =>
-  new Response(JSON.stringify({ error }), { status, headers: { "content-type": "application/json" } });
-
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail(403, "허용되지 않은 요청입니다.");
   const client = makeClient();
   if (!client) return fail(503, "챗봇이 아직 설정되지 않았습니다.");
-
-  const ip = (req.headers.get("x-forwarded-for") ?? "local").split(",")[0].trim();
-  if (rateLimited(ip)) return fail(429, "질문이 너무 잦습니다. 잠시 뒤 다시 시도해 주세요.");
 
   let body: unknown;
   try {
@@ -93,35 +61,33 @@ export async function POST(req: Request) {
   const msgs = validate(body);
   if (typeof msgs === "string") return fail(400, msgs);
 
-  // 첫 질문에 문서를 붙인다. 같은 접두부가 반복되므로 캐시를 걸어 비용을 줄인다.
+  // pdf가 함께 오면 사용자가 올린 문서, 없으면 기본 포트폴리오를 근거로 한다.
+  const uploaded = (body as { pdf?: unknown }).pdf;
+  let doc: string;
+  let system: string;
+  if (uploaded !== undefined) {
+    const problem = checkUploadedPdf(uploaded);
+    if (problem) return fail(400, problem);
+    if (rateLimited("upload", clientIp(req))) return fail(429, "올린 문서에 대한 질문이 너무 잦습니다. 잠시 뒤 다시 시도해 주세요.");
+    doc = uploaded as string;
+    system = GENERIC_SYSTEM_PROMPT;
+  } else {
+    if (rateLimited("chat", clientIp(req))) return fail(429, "질문이 너무 잦습니다. 잠시 뒤 다시 시도해 주세요.");
+    doc = portfolioPdf();
+    system = SYSTEM_PROMPT;
+  }
+
+  // 첫 질문에 문서를 붙인다.
   const messages: Anthropic.MessageParam[] = msgs.map((m, i) =>
     i === 0
       ? {
           role: "user",
-          content: [
-            {
-              type: "document",
-              source: { type: "base64", media_type: "application/pdf", data: portfolioPdf() },
-              title: "이은총 포트폴리오",
-              citations: { enabled: true },
-              cache_control: { type: "ephemeral" },
-            },
-            { type: "text", text: m.content },
-          ],
+          content: [pdfDocumentBlock(doc, uploaded !== undefined ? "사용자가 올린 문서" : "이은총 포트폴리오"), { type: "text", text: m.content }],
         }
       : { role: m.role, content: m.content },
   );
 
-  const model = chatModel();
-  const base = { model, max_tokens: LIMITS.maxOutputTokens, system: SYSTEM_PROMPT, messages };
-  const stream = supportsFallbackAndEffort(model)
-    ? client.beta.messages.stream({
-        ...base,
-        output_config: { effort: "low" },
-        betas: ["server-side-fallback-2026-07-01"],
-        fallbacks: "default",
-      })
-    : client.messages.stream(base);
+  const { model, stream } = openStream(client, { system, messages, maxTokens: LIMITS.maxOutputTokens });
 
   const enc = new TextEncoder();
   const out = new ReadableStream({
@@ -143,7 +109,14 @@ export async function POST(req: Request) {
           } else if (ev.type === "message_delta") {
             if (ev.delta?.stop_reason === "refusal") send({ t: "err", v: "이 질문에는 답변할 수 없습니다." });
             if (ev.usage) {
-              send({ t: "usage", cacheRead: ev.usage.cache_read_input_tokens, input: ev.usage.input_tokens });
+              const u = {
+                input: ev.usage.input_tokens,
+                cacheCreation: ev.usage.cache_creation_input_tokens,
+                cacheRead: ev.usage.cache_read_input_tokens,
+                output: ev.usage.output_tokens,
+              };
+              console.log("chat usage", model, uploaded !== undefined ? "upload" : "portfolio", JSON.stringify(u));
+              send({ t: "usage", ...u });
             }
           }
         }

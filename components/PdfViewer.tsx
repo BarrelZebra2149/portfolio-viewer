@@ -6,6 +6,7 @@ import type { PDFDocumentProxy } from "pdfjs-dist";
 import { DEFAULT_PDF, PROJECTS, projectOfPage } from "@/lib/portfolio";
 import HighlightPanel, { type Card } from "./HighlightPanel";
 import ChatPanel from "./ChatPanel";
+import { LIMITS } from "@/lib/chatConfig";
 
 // PDF.js를 쓰는 부분만 브라우저에서 따로 불러온다. 위쪽 도구 줄과 목록은 바로 보인다.
 const StageDocument = dynamic(() => import("./pdf/StageDocument"), { ssr: false, loading: () => null });
@@ -24,21 +25,52 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 function applyCite(root: Element, cited: string): boolean {
   root.querySelectorAll(".cite").forEach((el) => el.classList.remove("cite"));
   const spans = Array.from(root.querySelectorAll("span")).filter((s) => !s.querySelector("span"));
+  // 글머리 기호처럼 글꼴 때문에 달라지는 문자를 빼고 비교한다.
+  const clean = (s: string) => s.replace(/[\s•▪●➢➤→➔]/g, "");
   let full = "";
   const owner: number[] = [];
   spans.forEach((s, i) => {
     for (const ch of s.textContent ?? "") {
-      if (!/\s/.test(ch)) {
-        full += ch;
+      const c = clean(ch);
+      if (c) {
+        full += c;
         owner.push(i);
       }
     }
   });
-  const needle = cited.replace(/\s+/g, "");
-  const at = needle ? full.indexOf(needle) : -1;
-  if (at < 0) return false;
-  for (let i = owner[at]; i <= owner[at + needle.length - 1]; i++) spans[i].classList.add("cite");
-  return true;
+  const mark = (needle: string): boolean => {
+    const at = needle ? full.indexOf(needle) : -1;
+    if (at < 0) return false;
+    for (let i = owner[at]; i <= owner[at + needle.length - 1]; i++) spans[i].classList.add("cite");
+    return true;
+  };
+  // 먼저 통째로, 안 되면 줄 단위로 찾는다.
+  if (mark(clean(cited))) return true;
+  let any = false;
+  for (const line of cited.split(/\r?\n/)) {
+    const n = clean(line);
+    if (n.length >= 6 && mark(n)) any = true;
+  }
+  return any;
+}
+
+async function fileToBase64(f: File): Promise<string> {
+  const buf = new Uint8Array(await f.arrayBuffer());
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < buf.length; i += chunk) bin += String.fromCharCode(...buf.subarray(i, i + chunk));
+  return btoa(bin);
+}
+
+// 글자가 있는 PDF인지(스캔본이 아닌지) 앞쪽 몇 쪽만 확인한다.
+async function docHasText(pdf: PDFDocumentProxy): Promise<boolean> {
+  let chars = 0;
+  for (let i = 1; i <= Math.min(5, pdf.numPages); i++) {
+    const content = await (await pdf.getPage(i)).getTextContent();
+    chars += content.items.reduce((n, it) => n + ("str" in it ? it.str.length : 0), 0);
+    if (chars >= 50) return true;
+  }
+  return false;
 }
 
 // 로딩 표시가 잠깐 켜졌다 꺼지며 깜빡이지 않게: 켜기 전에 잠시 기다리고, 한 번 켜면 최소 시간 유지한다.
@@ -91,6 +123,12 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const [loadError, setLoadError] = useState("");
   const [hlOpen, setHlOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  // 직접 올린 문서의 AI 기능: 동의한 뒤에만 파일 내용이 서버로 전송된다.
+  const [aiPdf, setAiPdf] = useState<string | null>(null);
+  const [aiCards, setAiCards] = useState<Card[] | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiMsg, setAiMsg] = useState("");
+  const [consent, setConsent] = useState<null | "hl" | "chat">(null);
   const [cite, setCite] = useState<{ page: number; text: string } | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
@@ -324,6 +362,88 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     go(card.page);
   }
 
+  function resetAi() {
+    setAiPdf(null);
+    setAiCards(null);
+    setAiMsg("");
+    setConsent(null);
+    setHlOpen(false);
+    setChatOpen(false);
+  }
+
+  async function runAi(action: "hl" | "chat", b64: string) {
+    if (action === "chat") {
+      setChatOpen(true);
+      return;
+    }
+    if (aiCards) {
+      setHlOpen(true);
+      return;
+    }
+    setAiBusy(true);
+    setAiMsg("");
+    try {
+      const res = await fetch("/api/highlights", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pdf: b64 }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "핵심을 만들지 못했습니다.");
+      setAiCards(j.cards as Card[]);
+      setHlOpen(true);
+    } catch (e) {
+      setAiMsg((e as Error).message || "핵심을 만들지 못했습니다.");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  // 위쪽 버튼: 기본 포트폴리오는 바로 열고, 올린 문서는 동의를 받은 뒤 준비한다.
+  function startAi(action: "hl" | "chat") {
+    if (isDefault) {
+      if (action === "hl") setHlOpen(true);
+      else setChatOpen((v) => !v);
+      return;
+    }
+    if (aiPdf) {
+      if (action === "chat" && chatOpen) setChatOpen(false);
+      else void runAi(action, aiPdf);
+      return;
+    }
+    setAiMsg("");
+    setConsent(action);
+  }
+
+  async function confirmConsent() {
+    const action = consent;
+    setConsent(null);
+    if (!action || !(source instanceof File) || !doc) return;
+    if (source.size > 3 * 1024 * 1024) {
+      setAiMsg("3MB 이하 PDF만 AI 기능을 쓸 수 있습니다.");
+      return;
+    }
+    if (numPages > LIMITS.uploadMaxPages) {
+      setAiMsg(`${LIMITS.uploadMaxPages}쪽 이하 PDF만 AI 기능을 쓸 수 있습니다.`);
+      return;
+    }
+    setAiBusy(true);
+    try {
+      if (!(await docHasText(doc))) {
+        setAiMsg("이 PDF는 글자를 읽을 수 없어(스캔본 등) AI 기능을 쓸 수 없습니다.");
+        return;
+      }
+      const b64 = await fileToBase64(source);
+      setAiPdf(b64);
+      setAiBusy(false);
+      await runAi(action, b64);
+    } catch {
+      setAiMsg("파일을 준비하지 못했습니다.");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   function openFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     e.target.value = "";
@@ -336,6 +456,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setNumPages(0);
     setOutline([]);
     resetSearch();
+    resetAi();
     setPage(1);
     setShown(1);
     setRendered(new Set());
@@ -349,6 +470,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setNumPages(0);
     setOutline([]);
     resetSearch();
+    resetAi();
     setPage(1);
     setShown(1);
     setRendered(new Set());
@@ -361,7 +483,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const hasHits = hits.length > 0;
 
   return (
-    <div className={`viewer${chatOpen && isDefault ? " chat-open" : ""}`}>
+    <div className={`viewer${chatOpen && (isDefault || aiPdf) ? " chat-open" : ""}`}>
       <header className="topbar">
         <button className="iconbtn railtoggle" onClick={() => setRailOpen((v) => !v)} aria-label="목록 열기">
           ☰
@@ -410,16 +532,17 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
             {searching ? "찾는 중…" : activeQuery ? (hasHits ? `${hitIdx + 1}/${hits.length}쪽` : "결과 없음") : ""}
           </span>
         </form>
-        {isDefault && (
-          <>
-            <button className="iconbtn strong" onClick={() => setHlOpen(true)}>
-              핵심 보기
-            </button>
-            <button className="iconbtn strong" onClick={() => setChatOpen((v) => !v)} aria-pressed={chatOpen}>
-              질문하기
-            </button>
-          </>
-        )}
+        <button className="iconbtn strong" onClick={() => startAi("hl")} disabled={aiBusy || (!isDefault && !doc)}>
+          {aiBusy && !isDefault ? "준비 중…" : "핵심 보기"}
+        </button>
+        <button
+          className="iconbtn strong"
+          onClick={() => startAi("chat")}
+          aria-pressed={chatOpen}
+          disabled={aiBusy || (!isDefault && !doc)}
+        >
+          질문하기
+        </button>
         <button className="iconbtn" onClick={() => fileInput.current?.click()}>
           PDF 열기
         </button>
@@ -483,7 +606,23 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
             PDF를 불러오는 중입니다…
           </div>
         )}
+        {aiMsg && (
+          <div className="ai-msg" role="alert">
+            <span>{aiMsg}</span>
+            <button className="iconbtn" onClick={() => setAiMsg("")} aria-label="닫기">
+              ✕
+            </button>
+          </div>
+        )}
         {hlOpen && isDefault && <HighlightPanel onPick={pickCard} onClose={() => setHlOpen(false)} />}
+        {hlOpen && !isDefault && aiCards && (
+          <HighlightPanel
+            groups={[{ id: "ai", title: "AI가 고른 핵심", cards: aiCards }]}
+            note="올린 문서에서 AI가 고른 핵심입니다. AI가 만든 내용이므로 근거 쪽에서 원문을 확인하세요."
+            onPick={pickCard}
+            onClose={() => setHlOpen(false)}
+          />
+        )}
         <StageDocument
           file={source}
           numPages={numPages}
@@ -497,6 +636,34 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
         />
       </main>
       {chatOpen && isDefault && <ChatPanel onCite={citeFromChat} onClose={() => setChatOpen(false)} />}
+      {chatOpen && !isDefault && aiPdf && (
+        <ChatPanel
+          key={source instanceof File ? `${source.name}-${source.size}` : "u"}
+          pdf={aiPdf}
+          onCite={citeFromChat}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
+      {consent && (
+        <div className="modal" role="dialog" aria-modal="true" aria-label="AI 기능 동의">
+          <div className="modal-card">
+            <h2>AI 기능을 쓰시겠어요?</h2>
+            <p>
+              이 기능을 쓰면 지금 연 PDF 파일의 내용이 <b>Anthropic API(Claude)</b>로 전송되어 핵심을 고르고 질문에
+              답합니다. 파일은 이 사이트의 서버에 저장되지 않습니다.
+            </p>
+            <p className="fine">3MB 이하, 40쪽 이하, 글자가 있는 PDF만 가능합니다. 민감한 문서는 동의하지 마세요.</p>
+            <div className="intro-actions">
+              <button className="btn ghost" onClick={() => setConsent(null)}>
+                취소
+              </button>
+              <button className="btn primary" onClick={() => void confirmConsent()} autoFocus>
+                동의하고 계속
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

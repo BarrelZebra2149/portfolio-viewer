@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import data from "@/lib/highlights.json";
 
 export type Card = { id: string; title: string; summary: string; page: number; cited: string };
-type Group = { id: string; title: string; cards: Card[] };
+export type Group = { id: string; title: string; cards: Card[] };
 
-const GROUPS = data.groups as Group[];
+const DEFAULT_GROUPS = data.groups as Group[];
 const READ_KEY = "cs-read-cards";
 const LAST_KEY = "cs-last-group";
 
@@ -30,20 +30,29 @@ function loadLast(): string | null {
 export default function HighlightPanel({
   onPick,
   onClose,
+  groups,
+  note,
 }: {
   onPick: (card: Card) => void;
   onClose: () => void;
+  // 직접 올린 문서에서 AI가 만든 핵심을 보여 줄 때만 넘긴다. 이 경우 읽음 기록은 저장하지 않는다.
+  groups?: Group[];
+  note?: string;
 }) {
+  const GROUPS = groups ?? DEFAULT_GROUPS;
+  const persist = !groups;
   const [read, setRead] = useState<string[]>([]);
   const [last, setLast] = useState<string | null>(null);
   const [active, setActive] = useState(GROUPS[0].id);
 
   useEffect(() => {
+    if (!persist) return;
     const r = loadRead();
     const l = loadLast();
     setRead(r);
     setLast(l);
     if (l && GROUPS.some((g) => g.id === l)) setActive(l);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -61,6 +70,10 @@ export default function HighlightPanel({
     const next = read.includes(card.id) ? read : [...read, card.id];
     setRead(next);
     setLast(group.id);
+    if (!persist) {
+      onPick(card);
+      return;
+    }
     try {
       localStorage.setItem(READ_KEY, JSON.stringify(next));
       localStorage.setItem(LAST_KEY, group.id);
@@ -75,7 +88,7 @@ export default function HighlightPanel({
       <header className="hl-head">
         <div>
           <h2>핵심 보기</h2>
-          <p>프로젝트별 핵심을 고르면 해당 쪽으로 이동해 근거 문장을 표시합니다.</p>
+          <p>{note ?? "프로젝트별 핵심을 고르면 해당 쪽으로 이동해 근거 문장을 표시합니다."}</p>
         </div>
         <button className="iconbtn" onClick={onClose} aria-label="닫기">
           ✕

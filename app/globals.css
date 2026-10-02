@@ -850,3 +850,54 @@ button {
     inset: 96px 0 0 0;
   }
 }
+
+/* ---------- 올린 문서의 AI 기능 ---------- */
+.ai-msg {
+  position: absolute;
+  z-index: 9;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  max-width: calc(100% - 24px);
+  padding: 8px 8px 8px 14px;
+  background: #fff;
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  font-size: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(38, 38, 38, 0.55);
+}
+.modal-card {
+  width: min(460px, 100%);
+  background: #fff;
+  border: 2.25pt solid var(--ink);
+  border-radius: 18px;
+  padding: 22px 22px 20px;
+  display: grid;
+  gap: 10px;
+}
+.modal-card h2 {
+  font-size: 20px;
+}
+.modal-card p {
+  font-size: 15px;
+  line-height: 1.7;
+}
+.modal-card .fine {
+  font-size: 13px;
+  color: var(--muted);
+}
+.modal-card .intro-actions {
+  margin-top: 8px;
+}

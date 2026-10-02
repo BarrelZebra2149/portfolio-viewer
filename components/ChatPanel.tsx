@@ -11,6 +11,7 @@ const SUGGESTIONS = [
   "가장 큰 성과는 무엇인가요?",
   "서버 관리에서 어떤 문제를 해결했나요?",
 ];
+const GENERIC_SUGGESTIONS = ["이 문서를 한 문단으로 요약해 주세요.", "가장 중요한 내용은 무엇인가요?"];
 const COUNT_KEY = "cs-chat-count";
 const MAX_QUESTIONS = 20;
 const MAX_CHARS = 400;
@@ -26,10 +27,14 @@ function loadCount(): number {
 export default function ChatPanel({
   onCite,
   onClose,
+  pdf,
 }: {
   onCite: (page: number, text: string) => void;
   onClose: () => void;
+  // 직접 올린 문서(base64). 없으면 기본 포트폴리오에 대해 묻는다.
+  pdf?: string;
 }) {
+  const suggestions = pdf ? GENERIC_SUGGESTIONS : SUGGESTIONS;
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -91,7 +96,7 @@ export default function ChatPanel({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ messages: payload }),
+        body: JSON.stringify(pdf ? { messages: payload, pdf } : { messages: payload }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -158,7 +163,7 @@ export default function ChatPanel({
       <header className="chat-head">
         <div>
           <h2>질문하기</h2>
-          <p>포트폴리오 내용에 대해 물어보면 근거 쪽과 함께 답합니다.</p>
+          <p>{pdf ? "올린 문서의 내용에 대해 물어보면 근거 쪽과 함께 답합니다." : "포트폴리오 내용에 대해 물어보면 근거 쪽과 함께 답합니다."}</p>
         </div>
         <button className="iconbtn" onClick={onClose} aria-label="닫기">
           ✕
@@ -170,7 +175,7 @@ export default function ChatPanel({
           <div className="chat-empty">
             <p>예를 들어 이렇게 물어볼 수 있습니다.</p>
             <div className="chat-sugs">
-              {SUGGESTIONS.map((s) => (
+              {suggestions.map((s) => (
                 <button key={s} className="chat-sug" onClick={() => ask(s)} disabled={busy || left <= 0}>
                   {s}
                 </button>
@@ -186,8 +191,8 @@ export default function ChatPanel({
             </div>
           ) : (
             <div key={i} className="msg bot">
-              {m.parts.map((p, j) => (
-                <div key={j} className="part">
+              {m.parts.filter((p) => p.text.trim() || p.cites.length).map((p, j) => (
+                <span key={j} className="part">
                   <span>{p.text}</span>
                   {p.cites.length > 0 && (
                     <span className="cites">
@@ -198,7 +203,7 @@ export default function ChatPanel({
                       ))}
                     </span>
                   )}
-                </div>
+                </span>
               ))}
               {m.pending && m.parts.length === 0 && (
                 <span className="typing">
@@ -231,7 +236,7 @@ export default function ChatPanel({
         </button>
       </form>
       <p className="chat-note">
-        답변은 AI가 이 포트폴리오 PDF만 근거로 만듭니다. 질문 내용은 Anthropic API로 전송됩니다. 남은 질문 {left}회{model ? ` · 모델 ${model}` : ""}
+        {pdf ? "답변은 AI가 올린 PDF만 근거로 만듭니다." : "답변은 AI가 이 포트폴리오 PDF만 근거로 만듭니다."} 질문 내용은 Anthropic API로 전송됩니다. 남은 질문 {left}회{model ? ` · 모델 ${model}` : ""}
       </p>
     </aside>
   );
