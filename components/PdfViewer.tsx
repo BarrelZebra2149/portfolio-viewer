@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { DEFAULT_PDF, PROJECTS, projectOfPage } from "@/lib/portfolio";
 import HighlightPanel, { type Card } from "./HighlightPanel";
+import ChatPanel from "./ChatPanel";
 
 // PDF.js를 쓰는 부분만 브라우저에서 따로 불러온다. 위쪽 도구 줄과 목록은 바로 보인다.
 const StageDocument = dynamic(() => import("./pdf/StageDocument"), { ssr: false, loading: () => null });
@@ -89,6 +90,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const [searching, setSearching] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [hlOpen, setHlOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [cite, setCite] = useState<{ page: number; text: string } | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
@@ -311,6 +313,11 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     [activeQuery],
   );
 
+  function citeFromChat(p: number, text: string) {
+    setCite({ page: p, text });
+    go(p);
+  }
+
   function pickCard(card: Card) {
     setHlOpen(false);
     setCite({ page: card.page, text: card.cited });
@@ -354,7 +361,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const hasHits = hits.length > 0;
 
   return (
-    <div className="viewer">
+    <div className={`viewer${chatOpen && isDefault ? " chat-open" : ""}`}>
       <header className="topbar">
         <button className="iconbtn railtoggle" onClick={() => setRailOpen((v) => !v)} aria-label="목록 열기">
           ☰
@@ -404,9 +411,14 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           </span>
         </form>
         {isDefault && (
-          <button className="iconbtn strong" onClick={() => setHlOpen(true)}>
-            핵심 보기
-          </button>
+          <>
+            <button className="iconbtn strong" onClick={() => setHlOpen(true)}>
+              핵심 보기
+            </button>
+            <button className="iconbtn strong" onClick={() => setChatOpen((v) => !v)} aria-pressed={chatOpen}>
+              질문하기
+            </button>
+          </>
         )}
         <button className="iconbtn" onClick={() => fileInput.current?.click()}>
           PDF 열기
@@ -484,6 +496,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           onLoadError={onDocError}
         />
       </main>
+      {chatOpen && isDefault && <ChatPanel onCite={citeFromChat} onClose={() => setChatOpen(false)} />}
     </div>
   );
 }
