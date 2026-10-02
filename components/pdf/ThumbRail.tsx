@@ -63,6 +63,7 @@ export default function ThumbRail({
   return (
     <Document
       file={file}
+      suspense={false}
       loading={null}
       error={null}
       noData={null}

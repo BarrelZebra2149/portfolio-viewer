@@ -38,6 +38,7 @@ export default function StageDocument({
       file={file}
       onLoadSuccess={onLoadSuccess}
       onLoadError={onLoadError}
+      suspense={false}
       loading={null}
       error={null}
       externalLinkTarget="_blank"
