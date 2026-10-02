@@ -712,7 +712,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           </>
         )}
         <h2>{thumbRange ? `쪽 (${thumbRange[0]}–${thumbRange[1]})` : "쪽"}</h2>
-        <ThumbRail file={source} page={page} onGo={go} range={thumbRange} />
+        <ThumbRail key={source instanceof File ? `${source.name}-${source.size}-${source.lastModified}` : source} file={source} page={page} onGo={go} range={thumbRange} />
       </nav>
 
       <main className="stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>

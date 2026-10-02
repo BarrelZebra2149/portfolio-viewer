@@ -62,6 +62,7 @@ export default function ThumbRail({
       error={null}
       noData={null}
       onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
+      onLoadError={() => setNumPages(0)}
     >
       <div className="thumbs">
         {Array.from({ length: numPages }, (_, i) => i + 1)
