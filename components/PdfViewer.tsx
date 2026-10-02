@@ -16,6 +16,7 @@ const MAX_RADIUS = 14;
 
 type Source = string | File;
 type OutlineEntry = { title: string; page: number | null };
+type Section = { title: string; from: number; to: number };
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -60,6 +61,42 @@ async function fileToBase64(f: File): Promise<string> {
   const chunk = 0x8000;
   for (let i = 0; i < buf.length; i += chunk) bin += String.fromCharCode(...buf.subarray(i, i + chunk));
   return btoa(bin);
+}
+
+// 쪽마다 앞부분 글자만 뽑는다(목차 만들기용). 파일 전체가 아니라 글자 일부만 서버로 보낸다.
+async function pageSnippets(pdf: PDFDocumentProxy, onProgress: (i: number, total: number) => void) {
+  const out: { n: number; text: string }[] = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const content = await (await pdf.getPage(i)).getTextContent();
+    const text = content.items
+      .map((it) => ("str" in it ? it.str : ""))
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 160);
+    out.push({ n: i, text });
+    if (i % 5 === 0 || i === pdf.numPages) onProgress(i, pdf.numPages);
+  }
+  return out;
+}
+
+// PDF 안 목차 항목을 "시작 쪽 ~ 다음 항목 전 쪽" 구간으로 바꾼다.
+function outlineToSections(entries: OutlineEntry[], total: number): Section[] {
+  const items = entries
+    .filter((e): e is OutlineEntry & { page: number } => e.page !== null)
+    .sort((a, b) => a.page - b.page)
+    .filter((e, i, arr) => i === 0 || e.page !== arr[i - 1].page);
+  return items.map((e, i) => ({ title: e.title, from: e.page, to: i + 1 < items.length ? items[i + 1].page - 1 : total }));
+}
+
+// 목차가 없는 긴 문서는 10쪽 단위로 묶어 보여 준다.
+function chunkSections(total: number, size = 10): Section[] {
+  const out: Section[] = [];
+  for (let from = 1; from <= total; from += size) {
+    const to = Math.min(total, from + size - 1);
+    out.push({ title: `${from}–${to}쪽`, from, to });
+  }
+  return out;
 }
 
 // 글자가 있는 PDF인지(스캔본이 아닌지) 앞쪽 몇 쪽만 확인한다.
@@ -128,7 +165,10 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const [aiCards, setAiCards] = useState<Card[] | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiMsg, setAiMsg] = useState("");
-  const [consent, setConsent] = useState<null | "hl" | "chat">(null);
+  const [consent, setConsent] = useState<null | "hl" | "chat" | "outline">(null);
+  const [consented, setConsented] = useState(false);
+  const [sections, setSections] = useState<Section[] | null>(null);
+  const [outlineBusy, setOutlineBusy] = useState("");
   const [cite, setCite] = useState<{ page: number; text: string } | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
@@ -367,6 +407,9 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setAiCards(null);
     setAiMsg("");
     setConsent(null);
+    setConsented(false);
+    setSections(null);
+    setOutlineBusy("");
     setHlOpen(false);
     setChatOpen(false);
   }
@@ -399,32 +442,70 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     }
   }
 
+  // 주제별 목차: 각 쪽의 앞부분 글자만 서버로 보내 AI가 주제 단위 구간으로 나눈다.
+  async function runOutline() {
+    if (!doc) return;
+    if (numPages < 4 || numPages > 400) {
+      setAiMsg("4~400쪽 문서만 목차를 만들 수 있습니다.");
+      return;
+    }
+    setAiMsg("");
+    setOutlineBusy("글자 읽는 중…");
+    try {
+      const pages = await pageSnippets(doc, (i, total) => setOutlineBusy(`글자 읽는 중 ${i}/${total}`));
+      if (pages.reduce((n, p) => n + p.text.length, 0) < 40) {
+        setAiMsg("이 PDF는 글자를 읽을 수 없어(스캔본 등) 목차를 만들 수 없습니다.");
+        return;
+      }
+      setOutlineBusy("주제를 나누는 중…");
+      const res = await fetch("/api/outline", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pages }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "목차를 만들지 못했습니다.");
+      setSections(j.sections as Section[]);
+    } catch (e) {
+      setAiMsg((e as Error).message || "목차를 만들지 못했습니다.");
+    } finally {
+      setOutlineBusy("");
+    }
+  }
+
   // 위쪽 버튼: 기본 포트폴리오는 바로 열고, 올린 문서는 동의를 받은 뒤 준비한다.
-  function startAi(action: "hl" | "chat") {
+  function startAi(action: "hl" | "chat" | "outline") {
     if (isDefault) {
       if (action === "hl") setHlOpen(true);
-      else setChatOpen((v) => !v);
+      else if (action === "chat") setChatOpen((v) => !v);
+      return;
+    }
+    setAiMsg("");
+    if (!consented) {
+      setConsent(action);
+      return;
+    }
+    void proceed(action);
+  }
+
+  // 동의한 뒤 실제 기능을 실행한다.
+  async function proceed(action: "hl" | "chat" | "outline") {
+    if (action === "outline") {
+      await runOutline();
       return;
     }
     if (aiPdf) {
       if (action === "chat" && chatOpen) setChatOpen(false);
-      else void runAi(action, aiPdf);
+      else await runAi(action, aiPdf);
       return;
     }
-    setAiMsg("");
-    setConsent(action);
-  }
-
-  async function confirmConsent() {
-    const action = consent;
-    setConsent(null);
-    if (!action || !(source instanceof File) || !doc) return;
+    if (!(source instanceof File) || !doc) return;
     if (source.size > 3 * 1024 * 1024) {
-      setAiMsg("3MB 이하 PDF만 AI 기능을 쓸 수 있습니다.");
+      setAiMsg("3MB 이하 PDF만 이 AI 기능을 쓸 수 있습니다. (주제별 목차는 큰 문서도 가능합니다.)");
       return;
     }
     if (numPages > LIMITS.uploadMaxPages) {
-      setAiMsg(`${LIMITS.uploadMaxPages}쪽 이하 PDF만 AI 기능을 쓸 수 있습니다.`);
+      setAiMsg(`${LIMITS.uploadMaxPages}쪽 이하 PDF만 이 AI 기능을 쓸 수 있습니다. (주제별 목차는 더 긴 문서도 가능합니다.)`);
       return;
     }
     setAiBusy(true);
@@ -442,6 +523,14 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     } finally {
       setAiBusy(false);
     }
+  }
+
+  async function confirmConsent() {
+    const action = consent;
+    setConsent(null);
+    if (!action) return;
+    setConsented(true);
+    await proceed(action);
   }
 
   function openFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -478,6 +567,19 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     handlers.current.clear();
     setSource(DEFAULT_PDF);
   }
+
+  // 왼쪽 목차 구간: AI가 만든 주제별 구간 > PDF 안 목차 > (30쪽 넘으면) 10쪽 묶음.
+  // 슬라이드 PDF는 쪽마다 목차 항목이 있는 경우가 많아, 쪽 수에 가까운 목차는 쓸모가 없어 건너뛴다.
+  const railSections: Section[] | null = (() => {
+    if (isDefault || !numPages) return null;
+    if (sections) return sections;
+    const usable = outline.filter((o) => o.page !== null).length;
+    if (usable >= 2 && usable < numPages * 0.7) return outlineToSections(outline, numPages);
+    return numPages > 30 ? chunkSections(numPages) : null;
+  })();
+  const activeSection = railSections?.find((s) => page >= s.from && page <= s.to);
+  const thumbRange: [number, number] | undefined =
+    railSections && numPages > 30 && activeSection ? [activeSection.from, activeSection.to] : undefined;
 
   const currentProject = isDefault ? projectOfPage(page) : undefined;
   const hasHits = hits.length > 0;
@@ -578,24 +680,39 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
             </ul>
           </>
         ) : (
-          outline.length > 0 && (
-            <>
-              <h2>목차</h2>
+          <>
+            <h2>목차</h2>
+            {!sections && doc && numPages >= 4 && (
+              <button className="ai-outline-btn" onClick={() => startAi("outline")} disabled={!!outlineBusy || aiBusy}>
+                {outlineBusy ? (
+                  <>
+                    <span className="spin" aria-hidden /> {outlineBusy}
+                  </>
+                ) : (
+                  "✦ AI 목차 만들기 (주제별)"
+                )}
+              </button>
+            )}
+            {railSections && (
               <ul className="navlist">
-                {outline.map((o, i) => (
-                  <li key={i}>
-                    <button className="navbtn" disabled={o.page === null} onClick={() => o.page && go(o.page)}>
-                      <span>{o.title}</span>
-                      {o.page && <small>{o.page}</small>}
+                {railSections.map((s, i) => (
+                  <li key={`${s.from}-${i}`}>
+                    <button
+                      className={`navbtn${activeSection === s ? " on" : ""}`}
+                      onClick={() => go(s.from)}
+                      title={`${s.from}–${s.to}쪽`}
+                    >
+                      <span>{s.title}</span>
+                      {!/^\d+–\d+쪽$/.test(s.title) && <small>{s.from === s.to ? s.from : `${s.from}–${s.to}`}</small>}
                     </button>
                   </li>
                 ))}
               </ul>
-            </>
-          )
+            )}
+          </>
         )}
-        <h2>쪽</h2>
-        <ThumbRail file={source} page={page} onGo={go} />
+        <h2>{thumbRange ? `쪽 (${thumbRange[0]}–${thumbRange[1]})` : "쪽"}</h2>
+        <ThumbRail file={source} page={page} onGo={go} range={thumbRange} />
       </nav>
 
       <main className="stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -650,10 +767,23 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           <div className="modal-card">
             <h2>AI 기능을 쓰시겠어요?</h2>
             <p>
-              이 기능을 쓰면 지금 연 PDF 파일의 내용이 <b>Anthropic API(Claude)</b>로 전송되어 핵심을 고르고 질문에
-              답합니다. 파일은 이 사이트의 서버에 저장되지 않습니다.
+              {consent === "outline" ? (
+                <>
+                  주제별 목차를 만들기 위해 <b>각 쪽의 앞부분 글자(쪽당 160자 이내)</b>가 <b>Anthropic API(Claude)</b>로
+                  전송됩니다. 파일 자체는 전송되지 않고, 이 사이트의 서버에도 저장되지 않습니다.
+                </>
+              ) : (
+                <>
+                  이 기능을 쓰면 지금 연 PDF 파일의 내용이 <b>Anthropic API(Claude)</b>로 전송되어 핵심을 고르고 질문에
+                  답합니다. 파일은 이 사이트의 서버에 저장되지 않습니다.
+                </>
+              )}
             </p>
-            <p className="fine">3MB 이하, 40쪽 이하, 글자가 있는 PDF만 가능합니다. 민감한 문서는 동의하지 마세요.</p>
+            <p className="fine">
+              {consent === "outline"
+                ? "4~400쪽, 글자가 있는 PDF만 가능합니다. 민감한 문서는 동의하지 마세요."
+                : "3MB 이하, 40쪽 이하, 글자가 있는 PDF만 가능합니다. 민감한 문서는 동의하지 마세요."}
+            </p>
             <div className="intro-actions">
               <button className="btn ghost" onClick={() => setConsent(null)}>
                 취소

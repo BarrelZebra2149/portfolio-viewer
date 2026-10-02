@@ -929,3 +929,40 @@ button {
   max-width: 100%;
   background: transparent;
 }
+
+/* ---------- AI 목차 만들기 ---------- */
+.ai-outline-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+.ai-outline-btn:hover:not(:disabled) {
+  background: #3b3b3b;
+}
+.ai-outline-btn:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+.ai-outline-btn .spin {
+  border-color: rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+}
+.navbtn span:first-child {
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.navbtn small {
+  white-space: nowrap;
+}

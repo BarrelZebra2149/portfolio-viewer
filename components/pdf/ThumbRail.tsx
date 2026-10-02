@@ -46,10 +46,13 @@ export default function ThumbRail({
   file,
   page,
   onGo,
+  range,
 }: {
   file: string | File;
   page: number;
   onGo: (n: number) => void;
+  // 긴 문서에서는 지금 보는 구간의 썸네일만 그린다.
+  range?: [number, number];
 }) {
   const [numPages, setNumPages] = useState(0);
   return (
@@ -61,9 +64,11 @@ export default function ThumbRail({
       onLoadSuccess={(pdf) => setNumPages(pdf.numPages)}
     >
       <div className="thumbs">
-        {Array.from({ length: numPages }, (_, i) => i + 1).map((n) => (
-          <LazyThumb key={n} n={n} active={n === page} onClick={() => onGo(n)} />
-        ))}
+        {Array.from({ length: numPages }, (_, i) => i + 1)
+          .filter((n) => !range || (n >= range[0] && n <= range[1]))
+          .map((n) => (
+            <LazyThumb key={n} n={n} active={n === page} onClick={() => onGo(n)} />
+          ))}
       </div>
     </Document>
   );
