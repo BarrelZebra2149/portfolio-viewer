@@ -1,11 +1,12 @@
 "use client";
 
+import "@/lib/polyfills";
 import { useEffect, useRef, useState } from "react";
 import { Document, Thumbnail, pdfjs } from "react-pdf";
 
 // workerSrc는 react-pdf 컴포넌트를 쓰는 이 파일에서 직접 지정해야 한다.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
+  "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
