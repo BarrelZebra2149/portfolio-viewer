@@ -966,3 +966,24 @@ button {
 .navbtn small {
   white-space: nowrap;
 }
+
+/* 한국어 / English 전환 */
+.langtoggle {
+  display: inline-flex;
+  border: 1px solid var(--line, #d6d6d6);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.langtoggle button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.langtoggle button.on {
+  background: #1a1a1a;
+  color: #fff;
+}

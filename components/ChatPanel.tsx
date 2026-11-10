@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Lang } from "@/lib/portfolio";
 
 type Cite = { page: number; text: string };
 type Part = { text: string; cites: Cite[] };
 type Msg = { role: "user"; text: string } | { role: "assistant"; parts: Part[]; error?: string; pending?: boolean };
 
-const SUGGESTIONS = [
-  "ARGUS에서 무엇을 맡았나요?",
-  "가장 큰 성과는 무엇인가요?",
-  "서버 관리에서 어떤 문제를 해결했나요?",
-];
+const SUGGESTIONS: Record<Lang, string[]> = {
+  ko: ["ARGUS에서 무엇을 맡았나요?", "가장 큰 성과는 무엇인가요?", "서버 관리에서 어떤 문제를 해결했나요?"],
+  en: ["What was your role in ARGUS?", "What is your biggest achievement?", "What problem did you solve as server admin?"],
+};
 const GENERIC_SUGGESTIONS = ["이 문서를 한 문단으로 요약해 주세요.", "가장 중요한 내용은 무엇인가요?"];
 const COUNT_KEY = "cs-chat-count";
 const MAX_QUESTIONS = 20;
@@ -28,13 +28,15 @@ export default function ChatPanel({
   onCite,
   onClose,
   pdf,
+  lang = "ko",
 }: {
   onCite: (page: number, text: string) => void;
   onClose: () => void;
   // 직접 올린 문서(base64). 없으면 기본 포트폴리오에 대해 묻는다.
   pdf?: string;
+  lang?: Lang;
 }) {
-  const suggestions = pdf ? GENERIC_SUGGESTIONS : SUGGESTIONS;
+  const suggestions = pdf ? GENERIC_SUGGESTIONS : SUGGESTIONS[lang];
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -96,7 +98,7 @@ export default function ChatPanel({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(pdf ? { messages: payload, pdf } : { messages: payload }),
+        body: JSON.stringify(pdf ? { messages: payload, pdf } : { messages: payload, doc: lang }),
         signal: ctrl.signal,
       });
       if (!res.ok || !res.body) {
@@ -163,7 +165,7 @@ export default function ChatPanel({
       <header className="chat-head">
         <div>
           <h2>질문하기</h2>
-          <p>{pdf ? "올린 문서의 내용에 대해 물어보면 근거 쪽과 함께 답합니다." : "포트폴리오 내용에 대해 물어보면 근거 쪽과 함께 답합니다."}</p>
+          <p>{pdf ? "올린 문서의 내용에 대해 물어보면 근거 쪽과 함께 답합니다." : (lang === "en" ? "Ask about this portfolio and get answers with the source page." : "포트폴리오 내용에 대해 물어보면 근거 쪽과 함께 답합니다.")}</p>
         </div>
         <button className="iconbtn" onClick={onClose} aria-label="닫기">
           ✕
@@ -236,7 +238,7 @@ export default function ChatPanel({
         </button>
       </form>
       <p className="chat-note">
-        {pdf ? "답변은 AI가 올린 PDF만 근거로 만듭니다." : "답변은 AI가 이 포트폴리오 PDF만 근거로 만듭니다."} 질문 내용은 Anthropic API로 전송됩니다. 남은 질문 {left}회{model ? ` · 모델 ${model}` : ""}
+        {pdf ? "답변은 AI가 올린 PDF만 근거로 만듭니다." : (lang === "en" ? "Answers come only from this portfolio PDF." : "답변은 AI가 이 포트폴리오 PDF만 근거로 만듭니다.")} 질문 내용은 Anthropic API로 전송됩니다. 남은 질문 {left}회{model ? ` · 모델 ${model}` : ""}
       </p>
     </aside>
   );

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { PDFDocumentProxy } from "pdfjs-dist";
-import { DEFAULT_PDF, PROJECTS, projectOfPage } from "@/lib/portfolio";
+import { DEFAULT_LANG, DOCS, PROJECTS, isDocPdf, projectOfPage, type Lang } from "@/lib/portfolio";
 import HighlightPanel, { type Card } from "./HighlightPanel";
 import ChatPanel from "./ChatPanel";
 import { LIMITS } from "@/lib/chatConfig";
@@ -134,13 +134,18 @@ function useHoldFlag(on: boolean, delay: number, hold: number): boolean {
   return on && delay === 0 ? true : shown;
 }
 
+function initialLang(): Lang {
+  return new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : DEFAULT_LANG;
+}
+
 function initialPage(): number {
   const p = Number(new URLSearchParams(window.location.search).get("p"));
   return Number.isInteger(p) && p > 0 ? p : 1;
 }
 
 export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) {
-  const [source, setSource] = useState<Source>(DEFAULT_PDF);
+  const [lang, setLang] = useState<Lang>(() => initialLang());
+  const [source, setSource] = useState<Source>(() => DOCS[initialLang()].pdf);
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState(0);
   const [page, setPage] = useState<number>(() => initialPage());
@@ -177,7 +182,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const fileInput = useRef<HTMLInputElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
 
-  const isDefault = source === DEFAULT_PDF;
+  const isDefault = isDocPdf(source);
 
   // 쪽마다 고정된 콜백을 쓴다. 콜백이 매 렌더마다 바뀌면 react-pdf가 쪽을 다시 그린다.
   const handlers = useRef(new Map<number, () => void>());
@@ -267,8 +272,10 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     if (!isDefault || !numPages) return;
     const url = new URL(window.location.href);
     url.searchParams.set("p", String(page));
+    if (lang === "en") url.searchParams.set("lang", "en");
+    else url.searchParams.delete("lang");
     window.history.replaceState(null, "", url);
-  }, [page, isDefault, numPages]);
+  }, [page, isDefault, numPages, lang]);
 
   useEffect(() => setPageInput(String(page)), [page]);
 
@@ -556,7 +563,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setSource(f);
   }
 
-  function backToDefault() {
+  function openDoc(next: Lang) {
     setDoc(null);
     setNumPages(0);
     setOutline([]);
@@ -567,7 +574,8 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
     setRendered(new Set());
     setRadius(1);
     handlers.current.clear();
-    setSource(DEFAULT_PDF);
+    setSource(DOCS[next].pdf);
+    setLang(next);
   }
 
   // 왼쪽 목차 구간: AI가 만든 주제별 구간 > PDF 안 목차 > (30쪽 넘으면) 10쪽 묶음.
@@ -583,7 +591,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
   const thumbRange: [number, number] | undefined =
     railSections && numPages > 30 && activeSection ? [activeSection.from, activeSection.to] : undefined;
 
-  const currentProject = isDefault ? projectOfPage(page) : undefined;
+  const currentProject = isDefault ? projectOfPage(lang, page) : undefined;
   const hasHits = hits.length > 0;
 
   return (
@@ -619,7 +627,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="검색"
+            placeholder={isDefault && lang === "en" ? "Search" : "검색"}
             aria-label="문서 안 검색"
           />
           {activeQuery && (
@@ -637,7 +645,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           </span>
         </form>
         <button className="iconbtn strong" onClick={() => startAi("hl")} disabled={aiBusy || (!isDefault && !doc)}>
-          {aiBusy && !isDefault ? "준비 중…" : "핵심 보기"}
+          {aiBusy && !isDefault ? "준비 중…" : isDefault && lang === "en" ? "Highlights" : "핵심 보기"}
         </button>
         <button
           className="iconbtn strong"
@@ -645,20 +653,34 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           aria-pressed={chatOpen}
           disabled={aiBusy || (!isDefault && !doc)}
         >
-          질문하기
+          {isDefault && lang === "en" ? "Ask" : "질문하기"}
         </button>
+        <div className="langtoggle" role="group" aria-label="Language">
+          {(["ko", "en"] as const).map((l) => (
+            <button
+              key={l}
+              type="button"
+              className={isDefault && lang === l ? "on" : ""}
+              aria-pressed={isDefault && lang === l}
+              onClick={() => openDoc(l)}
+              title={l === "ko" ? "한국어 포트폴리오" : "English portfolio"}
+            >
+              {l === "ko" ? "KO" : "EN"}
+            </button>
+          ))}
+        </div>
         <button className="iconbtn" onClick={() => fileInput.current?.click()}>
-          PDF 열기
+          {isDefault && lang === "en" ? "Open PDF" : "PDF 열기"}
         </button>
         <input ref={fileInput} type="file" accept="application/pdf,.pdf" hidden onChange={openFile} />
         {isDefault ? (
-          <a className="iconbtn" href={DEFAULT_PDF} download="portfolio.pdf" style={{ display: "inline-flex", alignItems: "center" }}>
-            <span className="dl-label">다운로드</span>
+          <a className="iconbtn" href={DOCS[lang].pdf} download={DOCS[lang].download} style={{ display: "inline-flex", alignItems: "center" }}>
+            <span className="dl-label">{lang === "en" ? "Download" : "다운로드"}</span>
             <span className="dl-icon" aria-label="다운로드">↓</span>
           </a>
         ) : (
-          <button className="iconbtn" onClick={backToDefault}>
-            포트폴리오로
+          <button className="iconbtn" onClick={() => openDoc(lang)}>
+            {lang === "en" ? "Back to portfolio" : "포트폴리오로"}
           </button>
         )}
       </header>
@@ -667,9 +689,9 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
       <nav className={`rail${railOpen ? " open" : ""}`} aria-label="탐색">
         {isDefault ? (
           <>
-            <h2>프로젝트</h2>
+            <h2>{lang === "en" ? "Sections" : "프로젝트"}</h2>
             <ul className="navlist">
-              {PROJECTS.map((p) => (
+              {PROJECTS[lang].map((p) => (
                 <li key={p.id}>
                   <button className={`navbtn${currentProject?.id === p.id ? " on" : ""}`} onClick={() => go(p.from)}>
                     <span>{p.title}</span>
@@ -733,7 +755,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
             </button>
           </div>
         )}
-        {hlOpen && isDefault && <HighlightPanel onPick={pickCard} onClose={() => setHlOpen(false)} />}
+        {hlOpen && isDefault && <HighlightPanel key={lang} lang={lang} onPick={pickCard} onClose={() => setHlOpen(false)} />}
         {hlOpen && !isDefault && aiCards && (
           <HighlightPanel
             groups={[{ id: "ai", title: "AI가 고른 핵심", cards: aiCards }]}
@@ -755,7 +777,7 @@ export default function PdfViewer({ onShowIntro }: { onShowIntro: () => void }) 
           onLoadError={onDocError}
         />
       </main>
-      {chatOpen && isDefault && <ChatPanel onCite={citeFromChat} onClose={() => setChatOpen(false)} />}
+      {chatOpen && isDefault && <ChatPanel key={lang} lang={lang} onCite={citeFromChat} onClose={() => setChatOpen(false)} />}
       {chatOpen && !isDefault && aiPdf && (
         <ChatPanel
           key={source instanceof File ? `${source.name}-${source.size}` : "u"}

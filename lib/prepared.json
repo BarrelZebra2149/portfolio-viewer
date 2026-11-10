@@ -1,0 +1,627 @@
+[
+ {
+  "id": "intro",
+  "keywords": [
+   "누구",
+   "자기소개",
+   "소개해",
+   "어떤 사람",
+   "who are",
+   "introduce",
+   "about you",
+   "yourself"
+  ],
+  "ko": {
+   "text": "새로운 방식도 시도하는 것을 부담스러워 하지 않는 백엔드 개발자 이은총입니다. 서버가 멈추면 로그와 측정값으로 원인을 끝까지 추적해 재발을 막아 왔습니다. 대표 경험은 ARGUS, EcoReport, Server Manager, AEye, DRAWMIND, NYPC, TalkCompass이고, Google Cloud 스터디잼을 2024년과 2026년에 수료했습니다.",
+   "cites": [
+    {
+     "page": 2,
+     "text": "코드를 해결하기 위해서는 새로운 방식도 시도하는 것을 부담스러워 하지 않는 사람입니다."
+    },
+    {
+     "page": 2,
+     "text": "서버가 멈추면 로그와 측정값으로 원인을 끝까지 추적해 재발을 막아 왔습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "I am Eunchong Lee, a backend developer who is not afraid to try new approaches. When a server stops, I trace the cause to the end with logs and measurements and stop it from recurring. My main projects are ARGUS, EcoReport, Server Manager, AEye, DRAWMIND, NYPC, and TalkCompass, and I completed Google Cloud Study Jam in 2024 and 2026.",
+   "cites": [
+    {
+     "page": 2,
+     "text": "I am not afraid to try new approaches to solve a problem."
+    },
+    {
+     "page": 2,
+     "text": "When a server stops, I trace the cause to the end with logs and measurements and stop it from recurring."
+    }
+   ]
+  }
+ },
+ {
+  "id": "argus",
+  "keywords": [
+   "argus",
+   "아르거스",
+   "가드레일",
+   "게이트웨이",
+   "폭주",
+   "litellm",
+   "샘플 에이전트",
+   "guardrail",
+   "gateway",
+   "runaway"
+  ],
+  "ko": {
+   "text": "ARGUS는 에이전트의 반복 호출 폭주를 모델에 닿기 전에 막는 쿠버네티스 정책 레이어입니다. 4인 팀에서 저는 폭주를 재현하는 샘플 에이전트와 채팅 화면을 개발했고, 탐지 임계값과 판정 지연의 실데이터 검증도 맡았습니다. 공개 기록 8만 건에서 호출의 33.6%가 반복이었고, 폭주는 5번째 호출부터 차단되며 정상 호출 10건은 모두 통과했습니다. 판정 지연은 kind 클러스터(인증 포함) 동시 1건에서 p99 2.0~2.9ms였습니다.",
+   "cites": [
+    {
+     "page": 10,
+     "text": "4인 팀에서 저는 폭주를 재현하는 샘플 에이전트와 채팅 화면을 개발했습니다."
+    },
+    {
+     "page": 11,
+     "text": "공개 기록 8만 건에서 호출의 33.6%가 반복이었습니다."
+    },
+    {
+     "page": 11,
+     "text": "폭주는 5번째 호출부터 차단, 정상 호출 10건은 모두 통과했습니다."
+    },
+    {
+     "page": 14,
+     "text": "kind 클러스터(인증 포함) 동시 1건 p99 2.0~2.9ms였습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "ARGUS is a Kubernetes policy layer that stops runaway repeated calls from an agent before they reach the model. In a team of 4, I built the sample agent that reproduces the runaway and a chat screen, and I ran the real-data validation of detection thresholds and decision latency. In 80,000 public records, 33.6% of calls were repeats; the runaway is blocked from the 5th call and all 10 normal calls passed. Decision latency was p99 2.0–2.9 ms for 1 concurrent request on a kind cluster with auth.",
+   "cites": [
+    {
+     "page": 10,
+     "text": "In a team of 4, I built the sample agent that reproduces the runaway, and a chat screen."
+    },
+    {
+     "page": 11,
+     "text": "In 80,000 public records, 33.6% of calls were repeats."
+    },
+    {
+     "page": 11,
+     "text": "The runaway is blocked from the 5th call, and all 10 normal calls passed."
+    },
+    {
+     "page": 14,
+     "text": "On a kind cluster (with auth), 1 concurrent request gave p99 2.0–2.9 ms."
+    }
+   ]
+  }
+ },
+ {
+  "id": "server",
+  "keywords": [
+   "서버 관리",
+   "gpu",
+   "ssh",
+   "ufw",
+   "복구",
+   "cuda",
+   "server manager",
+   "server admin",
+   "recovery",
+   "network",
+   "네트워크",
+   "서버 문제"
+  ],
+  "ko": {
+   "text": "학과 GPU 서버 7대(RTX 3090 2대, GTX 1080 Ti 5대)를 외부에서도 쓸 수 있게 만들었고, 학내에 Linux 네트워크 설정을 아는 사람이 없어 혼자 구축·운영했습니다. 무거운 학습 중 GPU가 멈추는 문제는 /boot/grub 폴더가 없어 커널 파라미터가 적용되지 않던 점을 찾아 해결했고, 이후 재발이 없었습니다. 삭제된 프로젝트는 쓰기를 최소화한 뒤 awk 조건 검색으로 핵심 소스를 찾아 복구했습니다.",
+   "cites": [
+    {
+     "page": 15,
+     "text": "학과 GPU 서버 7대(RTX 3090 2대, GTX 1080 Ti 5대)를 외부에서도 쓸 수 있게 만들었습니다."
+    },
+    {
+     "page": 17,
+     "text": "커널 파라미터가 /boot/grub 폴더가 없어 적용되지 않던 점을 찾아 해결했습니다."
+    },
+    {
+     "page": 18,
+     "text": "이름 없는 조각 파일을 awk 조건 검색(cv2·numpy·main)으로 골라 핵심 소스를 찾았습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "I made 7 department GPU servers (2 RTX 3090, 5 GTX 1080 Ti) usable from outside, and since no one on campus knew Linux networking, I built and ran them alone. When heavy training froze the GPU, I found kernel parameters were not applied because /boot/grub was missing, fixed it, and it never recurred. For a deleted project, I minimized writes and then found the key sources with an awk condition search.",
+   "cites": [
+    {
+     "page": 15,
+     "text": "Made 7 department GPU servers (2 RTX 3090, 5 GTX 1080 Ti) usable from outside."
+    },
+    {
+     "page": 17,
+     "text": "I found kernel parameters were not applied because /boot/grub was missing, and fixed it."
+    },
+    {
+     "page": 18,
+     "text": "I found the key sources among nameless fragments with an awk condition search (cv2 · numpy · main)."
+    }
+   ]
+  }
+ },
+ {
+  "id": "ecoreport",
+  "keywords": [
+   "ecoreport",
+   "에코리포트",
+   "전기",
+   "에어컨",
+   "yolo",
+   "전등",
+   "강의실",
+   "해커톤",
+   "cloud run"
+  ],
+  "ko": {
+   "text": "EcoReport는 빈 강의실의 켜진 전등·에어컨을 사진 한 장으로 제보하면 AI가 낭비 여부와 절약 금액을 계산하는 서비스입니다. 저는 AI 판별 서버와 백엔드 연동을 맡았습니다(2주 해커톤 출품작). 1단계 YOLOv8n에서 사람이 있거나 강의실이 아니면 Gemini 호출 없이 종료하고, 에어컨 탐지 모델은 2,016장으로 학습해 mAP@0.5 약 0.99를 얻었습니다. AI 서버는 Cloud Run에 배포했습니다.",
+   "cites": [
+    {
+     "page": 24,
+     "text": "저는 AI 판별 서버와 백엔드 연동을 맡았습니다. (2주 해커톤 출품작)"
+    },
+    {
+     "page": 25,
+     "text": "1단계 YOLOv8n: 사람이 있거나 강의실이 아니면 Gemini 호출 없이 종료합니다."
+    },
+    {
+     "page": 26,
+     "text": "에어컨 탐지 모델을 2,016장으로 학습해 mAP@0.5 약 0.99를 얻었습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "EcoReport lets you report lights and air conditioners left on in an empty classroom with one photo, and AI judges the waste and savings. I owned the AI judging server and backend integration (a 2-week hackathon entry). In step 1, YOLOv8n ends the request without calling Gemini if people are present or it is not a classroom, and I trained the detector on 2,016 images to reach mAP@0.5 of about 0.99. The AI server runs on Cloud Run.",
+   "cites": [
+    {
+     "page": 24,
+     "text": "I owned the AI judging server and backend integration. (2-week hackathon entry)"
+    },
+    {
+     "page": 25,
+     "text": "Step 1 YOLOv8n: if people are present or it is not a classroom, end without calling Gemini."
+    },
+    {
+     "page": 26,
+     "text": "Trained the air-conditioner detector on 2,016 images and reached mAP@0.5 of about 0.99."
+    }
+   ]
+  }
+ },
+ {
+  "id": "aeye",
+  "keywords": [
+   "aeye",
+   "시각장애",
+   "보행",
+   "depth",
+   "코루틴",
+   "coroutine",
+   "blind",
+   "830"
+  ],
+  "ko": {
+   "text": "AEye는 보도 위 장애물과 횡단보도·차도를 인식해 음성으로 안내하는 앱입니다. 저는 처리 시간 개선을 맡아 Depth 모델 연동과 병렬 추론 구조를 만들었고, 순차 합산 약 3.6초가 평균 830ms로 줄었습니다. 개발 전 팀원 모두 시각장애인 인터뷰에 참여해 필요한 기능을 확인했습니다. 거리 오차 개선(1.70m → 0.47m)은 팀 성과입니다.",
+   "cites": [
+    {
+     "page": 22,
+     "text": "저는 처리 시간 개선을 맡아 Depth 모델 연동과 병렬 추론 구조를 만들었습니다."
+    },
+    {
+     "page": 23,
+     "text": "순차 합산 약 3.6초 → 평균 830ms"
+    },
+    {
+     "page": 23,
+     "text": "거리 오차(0~5m) 1.70m → 0.47m (팀 성과)"
+    }
+   ]
+  },
+  "en": {
+   "text": "AEye is an app that recognizes obstacles, crosswalks, and roadways on sidewalks and guides by voice. I owned speeding up processing: Depth model integration and a parallel inference structure cut the sequential sum of about 3.6 s to 830 ms on average. Before development the whole team joined interviews with visually impaired people. The distance-error improvement (1.70 m to 0.47 m) is a team result.",
+   "cites": [
+    {
+     "page": 22,
+     "text": "I owned speeding up processing: Depth model integration and a parallel inference structure."
+    },
+    {
+     "page": 23,
+     "text": "Sequential sum about 3.6 s → 830 ms average"
+    },
+    {
+     "page": 23,
+     "text": "Distance error (0–5 m) 1.70 m → 0.47 m (team result)"
+    }
+   ]
+  }
+ },
+ {
+  "id": "drawmind",
+  "keywords": [
+   "drawmind",
+   "게시판",
+   "웹킷",
+   "api 정의",
+   "팀장",
+   "jwt",
+   "bcrypt",
+   "postgresql"
+  ],
+  "ko": {
+   "text": "DRAWMIND는 글 위에 직접 그림을 그려 같은 모습으로 게시하는 게시판입니다. 저는 팀장으로 기획서를 정리하고 DB 설계와 백엔드(Spring Boot, PostgreSQL)를 맡았습니다. 프론트·백엔드가 나눠 개발하기 전에 API 정의서를 먼저 작성했고, API 9개는 모두 POST·JSON이며 결과 코드 표로 오류 응답을 통일했습니다.",
+   "cites": [
+    {
+     "page": 19,
+     "text": "저는 팀장으로 기획서를 정리하고 DB 설계와 백엔드(Spring Boot, PostgreSQL)를 맡았습니다."
+    },
+    {
+     "page": 20,
+     "text": "프론트·백엔드가 나눠 개발하기 전에 API 정의서를 먼저 작성했습니다."
+    },
+    {
+     "page": 20,
+     "text": "API 9개는 모두 POST·JSON이고, 결과 코드 표로 오류 응답을 통일했습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "DRAWMIND is a board where you draw directly on text and post it as it looks. As team lead, I wrote the plan and owned the DB design and backend (Spring Boot, PostgreSQL). Before front end and back end split up, I wrote the API spec first; all 9 APIs are POST · JSON, and a result-code table unifies error responses.",
+   "cites": [
+    {
+     "page": 19,
+     "text": "As team lead, I wrote the plan and owned the DB design and backend (Spring Boot, PostgreSQL)."
+    },
+    {
+     "page": 20,
+     "text": "Before front end and back end split up, I wrote the API spec first."
+    },
+    {
+     "page": 20,
+     "text": "All 9 APIs are POST · JSON, and a result-code table unifies error responses."
+    }
+   ]
+  }
+ },
+ {
+  "id": "nypc",
+  "keywords": [
+   "nypc",
+   "넥슨",
+   "대전",
+   "베스트 리플레이",
+   "nexon",
+   "xml",
+   "llm 활용"
+  ],
+  "ko": {
+   "text": "NYPC는 넥슨이 개최한 LLM 활용 대회로, 팀이 만든 AI 에이전트끼리 대전합니다. 팀원은 오프닝·위협도 계산·빠른 공격 로직을, 저는 스펙 정리와 코드 생성, 학습 구조를 맡았습니다. 4인 팀으로 예선 37위(참가 1,000팀 중)와 베스트 리플레이상을 받았습니다. 규칙을 마크다운 스펙 문서로 바꾸고 XML 태그 기반 프롬프트로 코드를 쓰게 했으며, (N, K) 조합이 63개임을 확인해 조합별 파라미터를 학습하게 했습니다.",
+   "cites": [
+    {
+     "page": 27,
+     "text": "4인 팀으로 예선 37위(참가 1,000팀 중), 베스트 리플레이상을 받았습니다."
+    },
+    {
+     "page": 28,
+     "text": "XML 태그 기반 프롬프트로 LLM이 코드를 쓰게 했습니다."
+    },
+    {
+     "page": 29,
+     "text": "저는 AI가 쓴 코드로 실제 조합을 관찰해 63개의 가능성 노드들을 확인했습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "NYPC is a contest hosted by Nexon on using LLMs, where teams' AI agents battle. Teammates built the opening, threat scoring, and fast-attack logic; I handled the spec, code generation, and learning structure. As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and won the Best Replay Award. I turned the rules into a Markdown spec, had the LLM write code from XML-tag prompts, and found 63 combinations whose parameters are learned separately.",
+   "cites": [
+    {
+     "page": 27,
+     "text": "As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and won the Best Replay Award."
+    },
+    {
+     "page": 28,
+     "text": "Had the LLM write code from XML-tag prompts."
+    },
+    {
+     "page": 29,
+     "text": "Using AI-written code I observed the real combinations and found 63 possible nodes."
+    }
+   ]
+  }
+ },
+ {
+  "id": "talk",
+  "keywords": [
+   "talkcompass",
+   "톡컴퍼스",
+   "역질문",
+   "녹음",
+   "프롬프트 에이전트",
+   "prompt agent",
+   "reverse"
+  ],
+  "ko": {
+   "text": "TalkCompass는 회의·대화 녹음 파일을 분석해 Gemini에 맞는 프롬프트를 만드는 AI 에이전트이고, 스터디잼 해커톤 출품작입니다. 저는 기획부터 개발·제출까지 혼자 맡았습니다. AI가 먼저 되물어 필요한 정보를 채운 뒤 프롬프트를 만들며, 업로드부터 테스트 실행까지 4단계 데모가 동작합니다. React·Spring Boot를 분리하고 Docker 배포 환경을 갖췄습니다.",
+   "cites": [
+    {
+     "page": 30,
+     "text": "저는 기획부터 개발·제출까지 혼자 맡았습니다."
+    },
+    {
+     "page": 31,
+     "text": "업로드부터 테스트 실행까지 4단계 데모가 동작합니다."
+    },
+    {
+     "page": 31,
+     "text": "AI가 먼저 되물어 필요한 정보를 채운 뒤 프롬프트를 만듭니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "TalkCompass is an AI agent that analyzes meeting and conversation recordings and builds prompts tuned for Gemini, entered in the Study Jam hackathon. I handled everything from planning to development and submission alone. The AI asks first to fill in missing details before writing the prompt, and a 4-step demo works from upload to test run. React and Spring Boot are split, with a Docker deployment setup.",
+   "cites": [
+    {
+     "page": 30,
+     "text": "I handled everything from planning to development and submission alone."
+    },
+    {
+     "page": 31,
+     "text": "A 4-step demo works from upload to test run."
+    },
+    {
+     "page": 31,
+     "text": "The AI asks first to fill in missing details, then writes the prompt."
+    }
+   ]
+  }
+ },
+ {
+  "id": "muse",
+  "keywords": [
+   "musemate",
+   "뮤즈메이트",
+   "flutter",
+   "플러터",
+   "트레저",
+   "음악",
+   "music",
+   "treasure"
+  ],
+  "ko": {
+   "text": "MUSEMATE는 음악으로 사람을 잇는 Flutter 모바일 앱이고, 오픈소스 개발자대회 출품작입니다. 저는 5인 팀의 팀장으로 총괄하고 지도 기능을 개발했습니다. 비공개 음악 보물찾기와 라이브 방·비공개 보드 지도 모드를 만들었고, README·SECURITY.md·PR 템플릿을 관리하며 5명의 머지를 조율했습니다.",
+   "cites": [
+    {
+     "page": 32,
+     "text": "5인 팀의 팀장으로 총괄하고 지도 기능을 개발했습니다."
+    },
+    {
+     "page": 33,
+     "text": "비공개 음악 보물찾기와 라이브 방·비공개 보드 지도 모드를 개발했습니다."
+    },
+    {
+     "page": 33,
+     "text": "README·SECURITY.md·PR 템플릿을 관리하며 5명의 머지를 조율했습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "MUSEMATE is a Flutter mobile app that connects people through music, entered in an open-source developer contest. As lead of a team of 5, I ran the project and built the map features. I built the private music treasure hunt and the live-room and private-board map modes, and I managed the README, SECURITY.md, and PR template and coordinated the merges of 5 people.",
+   "cites": [
+    {
+     "page": 32,
+     "text": "As lead of a team of 5, I ran the project and built the map features."
+    },
+    {
+     "page": 33,
+     "text": "Built the private music treasure hunt and the live-room and private-board map modes."
+    },
+    {
+     "page": 33,
+     "text": "Managed the README, SECURITY.md, and PR template and coordinated the merges of 5 people."
+    }
+   ]
+  }
+ },
+ {
+  "id": "grid",
+  "keywords": [
+   "gridpuzzle",
+   "grid",
+   "814",
+   "격자",
+   "유전",
+   "백준",
+   "7666",
+   "genetic"
+  ],
+  "ko": {
+   "text": "GridPuzzle은 백준 814-2 문제로, 8×14 격자에 0~9를 배치해 1→2→3…을 최대한 길게 읽는 문제입니다. 유전 알고리즘과 brute-force 그리드 탐색을 결합하고 mutation 전략과 정체 구간 처리를 고도화해, 현재 7666까지 읽히는 배치를 찾았습니다(8142까지 읽으면 만점).",
+   "cites": [
+    {
+     "page": 34,
+     "text": "현재 7666까지 읽히는 배치를 찾았습니다."
+    },
+    {
+     "page": 35,
+     "text": "유전 알고리즘과 brute-force 그리드 탐색을 결합했습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "GridPuzzle is BOJ problem 814-2: place 0–9 on an 8×14 grid and read 1→2→3… as far as possible. I combined a genetic algorithm with brute-force grid search and refined the mutation strategy and stagnation handling, and found an arrangement that reads up to 7666 (reading to 8142 is a perfect score).",
+   "cites": [
+    {
+     "page": 34,
+     "text": "I found an arrangement that reads up to 7666."
+    },
+    {
+     "page": 35,
+     "text": "Combined a genetic algorithm with brute-force grid search."
+    }
+   ]
+  }
+ },
+ {
+  "id": "studyjam",
+  "keywords": [
+   "study jam",
+   "스터디잼",
+   "구글",
+   "google",
+   "gcp",
+   "배지",
+   "badge",
+   "league",
+   "gemini",
+   "vertex"
+  ],
+  "ko": {
+   "text": "Google Cloud 스터디잼을 2024년과 2026년에 두 차례 수료했습니다. 2024년에는 AI/ML 과정에서 TensorFlow 이미지 분류와 멀티모달 RAG를 실습했고, 2026년에는 Google Skills에서 33개 배지와 Gold League(10,894점)를 달성했으며 Google DeepMind 시리즈 7개 과정을 모두 이수했습니다. 이 학습을 바탕으로 EcoReport에서 Gemini 2.5 Flash로 켜짐·꺼짐을 판별하고 AI 서버를 Cloud Run에 배포했습니다.",
+   "cites": [
+    {
+     "page": 6,
+     "text": "2024년 Google Cloud AI/ML 스터디잼을 수료했습니다."
+    },
+    {
+     "page": 7,
+     "text": "2026년 Google Skills에서 33개 배지와 Gold League(10,894점)를 달성했습니다."
+    },
+    {
+     "page": 9,
+     "text": "AI 서버를 FastAPI로 만들어 Cloud Run에 배포했습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "I completed Google Cloud Study Jam twice, in 2024 and 2026. In 2024 I practiced TensorFlow image classification and multimodal RAG; in 2026 I earned 33 badges and Gold League (10,894 points) on Google Skills and finished all 7 courses of the Google DeepMind series. Building on this, EcoReport uses Gemini 2.5 Flash to judge on/off and its AI server runs on Cloud Run.",
+   "cites": [
+    {
+     "page": 6,
+     "text": "Completed the Google Cloud AI/ML Study Jam in 2024."
+    },
+    {
+     "page": 7,
+     "text": "In 2026 I earned 33 badges and Gold League (10,894 points) on Google Skills."
+    },
+    {
+     "page": 9,
+     "text": "Built the AI server with FastAPI and deployed it on Cloud Run."
+    }
+   ]
+  }
+ },
+ {
+  "id": "stack",
+  "keywords": [
+   "기술",
+   "스택",
+   "스킬",
+   "stack",
+   "skill",
+   "language",
+   "언어",
+   "spring",
+   "kotlin",
+   "java",
+   "docker",
+   "tech"
+  ],
+  "ko": {
+   "text": "백엔드 개발에 Spring Boot로 API와 DB를 설계하고, Kotlin 코루틴으로 병렬 처리해 시간을 줄였으며, Docker·Linux로 서버를 운영하며 장애를 추적했습니다. 또 TypeScript로 도구 호출 에이전트를 구현했고, Google Cloud 스터디잼을 2회 수료해 AI 서버를 Cloud Run에 배포했습니다. 사용 기술은 Java, Spring Boot, JPA, MySQL, PostgreSQL, Linux, Docker, Kotlin, GCP입니다.",
+   "cites": [
+    {
+     "page": 5,
+     "text": "Spring Boot로 API와 DB를 설계했습니다."
+    },
+    {
+     "page": 5,
+     "text": "Kotlin 코루틴으로 병렬 처리해 시간을 줄였습니다."
+    },
+    {
+     "page": 5,
+     "text": "TypeScript로 도구 호출 에이전트를 구현했습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "For backend work I design APIs and a DB with Spring Boot, cut processing time with Kotlin coroutines, and run servers and trace failures with Docker and Linux. I also built a tool-calling agent in TypeScript and deployed an AI server on Cloud Run after two Study Jams. My stack is Java, Spring Boot, JPA, MySQL, PostgreSQL, Linux, Docker, Kotlin, and GCP.",
+   "cites": [
+    {
+     "page": 5,
+     "text": "Designed APIs and a DB with Spring Boot."
+    },
+    {
+     "page": 5,
+     "text": "Cut processing time with parallelism using Kotlin coroutines."
+    },
+    {
+     "page": 5,
+     "text": "Built a tool-calling agent in TypeScript."
+    }
+   ]
+  }
+ },
+ {
+  "id": "best",
+  "keywords": [
+   "성과",
+   "가장 큰",
+   "최고",
+   "강점",
+   "잘한",
+   "자랑",
+   "achievement",
+   "biggest",
+   "proud",
+   "strength",
+   "best"
+  ],
+  "ko": {
+   "text": "가장 눈에 띄는 성과는 ARGUS 검증(공개 기록 8만 건에서 호출의 33.6%가 반복, 폭주는 5번째 호출부터 차단)입니다. AEye에서는 처리 시간을 순차 합산 약 3.6초에서 평균 830ms로 줄였고, EcoReport의 에어컨 탐지 모델은 mAP@0.5 약 0.99를 얻었습니다. NYPC에서는 4인 팀으로 예선 37위(참가 1,000팀 중)와 베스트 리플레이상을 받았습니다.",
+   "cites": [
+    {
+     "page": 11,
+     "text": "공개 기록 8만 건에서 호출의 33.6%가 반복이었습니다."
+    },
+    {
+     "page": 23,
+     "text": "순차 합산 약 3.6초 → 평균 830ms"
+    },
+    {
+     "page": 26,
+     "text": "에어컨 탐지 모델을 2,016장으로 학습해 mAP@0.5 약 0.99를 얻었습니다."
+    },
+    {
+     "page": 27,
+     "text": "4인 팀으로 예선 37위(참가 1,000팀 중), 베스트 리플레이상을 받았습니다."
+    }
+   ]
+  },
+  "en": {
+   "text": "My most notable results are the ARGUS validation (33.6% of calls were repeats in 80,000 public records, with the runaway blocked from the 5th call), AEye, where I cut the sequential sum of about 3.6 s to 830 ms on average, and EcoReport's air-conditioner detector at mAP@0.5 of about 0.99. In NYPC, as a team of 4, we placed 37th of 1,000 teams and won the Best Replay Award.",
+   "cites": [
+    {
+     "page": 11,
+     "text": "In 80,000 public records, 33.6% of calls were repeats."
+    },
+    {
+     "page": 23,
+     "text": "Sequential sum about 3.6 s → 830 ms average"
+    },
+    {
+     "page": 26,
+     "text": "Trained the air-conditioner detector on 2,016 images and reached mAP@0.5 of about 0.99."
+    },
+    {
+     "page": 27,
+     "text": "As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and won the Best Replay Award."
+    }
+   ]
+  }
+ }
+]

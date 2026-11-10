@@ -1,7 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import fs from "node:fs";
 import path from "node:path";
-import { GENERIC_SYSTEM_PROMPT, LIMITS, SYSTEM_PROMPT } from "@/lib/chatConfig";
+import { GENERIC_SYSTEM_PROMPT, LIMITS, SYSTEM_PROMPT, SYSTEM_PROMPT_EN } from "@/lib/chatConfig";
+import { PREPARED_MODEL, findPrepared, shouldUsePrepared } from "@/lib/prepared";
 import {
   checkUploadedPdf,
   clientIp,
@@ -18,12 +19,13 @@ export const maxDuration = 60;
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
-let portfolioB64: string | null = null;
-function portfolioPdf(): string {
-  if (!portfolioB64) {
-    portfolioB64 = fs.readFileSync(path.join(process.cwd(), "data", "portfolio.pdf")).toString("base64");
+// 기본 포트폴리오(한국어·영어). 파일은 data/ 폴더에서 한 번만 읽어 메모리에 둔다.
+const portfolioCache: Record<string, string> = {};
+function portfolioPdf(lang: "ko" | "en"): string {
+  if (!portfolioCache[lang]) {
+    portfolioCache[lang] = fs.readFileSync(path.join(process.cwd(), "data", `portfolio_${lang}.pdf`)).toString("base64");
   }
-  return portfolioB64;
+  return portfolioCache[lang];
 }
 
 function validate(body: unknown): ChatMsg[] | string {
@@ -50,7 +52,6 @@ function validate(body: unknown): ChatMsg[] | string {
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return fail(403, "허용되지 않은 요청입니다.");
   const client = makeClient();
-  if (!client) return fail(503, "챗봇이 아직 설정되지 않았습니다.");
 
   let body: unknown;
   try {
@@ -60,6 +61,25 @@ export async function POST(req: Request) {
   }
   const msgs = validate(body);
   if (typeof msgs === "string") return fail(400, msgs);
+
+  // 기본 포트폴리오에 대한 질문이면 AI가 안 될 때 미리 준비한 답변으로 대신한다.
+  const isDefaultDoc = (body as { pdf?: unknown }).pdf === undefined;
+  const docLang: "ko" | "en" = (body as { doc?: unknown }).doc === "en" ? "en" : "ko";
+  const lastQuestion = msgs[msgs.length - 1].content;
+  const prepared = () => {
+    const a = findPrepared(lastQuestion, docLang);
+    const lines: string[] = [
+      JSON.stringify({ t: "model", v: PREPARED_MODEL[docLang] }),
+      JSON.stringify({ t: "start" }),
+      JSON.stringify({ t: "text", v: a.text }),
+      ...a.cites.map((c) => JSON.stringify({ t: "cite", page: c.page, text: c.text })),
+      JSON.stringify({ t: "done" }),
+    ];
+    return new Response(lines.join("\n") + "\n", {
+      headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store" },
+    });
+  };
+  if (!client) return isDefaultDoc ? prepared() : fail(503, "챗봇이 아직 설정되지 않았습니다.");
 
   // pdf가 함께 오면 사용자가 올린 문서, 없으면 기본 포트폴리오를 근거로 한다.
   const uploaded = (body as { pdf?: unknown }).pdf;
@@ -73,8 +93,9 @@ export async function POST(req: Request) {
     system = GENERIC_SYSTEM_PROMPT;
   } else {
     if (rateLimited("chat", clientIp(req))) return fail(429, "질문이 너무 잦습니다. 잠시 뒤 다시 시도해 주세요.");
-    doc = portfolioPdf();
-    system = SYSTEM_PROMPT;
+    const lang = (body as { doc?: unknown }).doc === "en" ? "en" : "ko";
+    doc = portfolioPdf(lang);
+    system = lang === "en" ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT;
   }
 
   // 첫 질문에 문서를 붙인다.
@@ -93,11 +114,13 @@ export async function POST(req: Request) {
   const out = new ReadableStream({
     async start(controller) {
       const send = (o: unknown) => controller.enqueue(enc.encode(JSON.stringify(o) + "\n"));
+      let started = false;
       try {
         send({ t: "model", v: model });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         for await (const ev of stream as AsyncIterable<any>) {
           if (ev.type === "content_block_start" && ev.content_block?.type === "text") {
+            started = true;
             send({ t: "start" });
           } else if (ev.type === "content_block_delta") {
             const d = ev.delta;
@@ -124,6 +147,15 @@ export async function POST(req: Request) {
       } catch (e) {
         const status = (e as { status?: number })?.status;
         console.error("chat error", status, (e as Error)?.message);
+        if (!started && isDefaultDoc && shouldUsePrepared(status, (e as Error)?.message)) {
+          const a = findPrepared(lastQuestion, docLang);
+          send({ t: "model", v: PREPARED_MODEL[docLang] });
+          send({ t: "start" });
+          send({ t: "text", v: a.text });
+          for (const c of a.cites) send({ t: "cite", page: c.page, text: c.text });
+          send({ t: "done" });
+          return;
+        }
         send({
           t: "err",
           v: status === 429 ? "요청이 많아 잠시 후 다시 시도해 주세요." : "답변을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.",

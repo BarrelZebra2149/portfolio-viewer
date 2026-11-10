@@ -1,159 +1,440 @@
 {
-  "groups": [
-    {
-      "id": "intro",
-      "title": "소개 · 기술 스택",
-      "cards": [
-        {
-          "id": "intro-seeker",
-          "title": "새로운 방식도 시도하는 사람",
-          "summary": "새 방식을 부담스러워 하지 않고 문제를 해결합니다.",
-          "page": 2,
-          "cited": "새로운 방식도 시도하는 것을 부담스러워 하지 않는 사람입니다."
-        },
-        {
-          "id": "intro-stack",
-          "title": "사용한 기술",
-          "summary": "Spring Boot로 API와 DB를 설계했습니다.",
-          "page": 4,
-          "cited": "Spring Boot로 API와 DB를 설계했습니다."
-        }
-      ]
-    },
-    {
-      "id": "argus",
-      "title": "ARGUS",
-      "cards": [
-        {
-          "id": "argus-role",
-          "title": "폭주를 일으키는 피해자 앱을 맡음",
-          "summary": "ARGUS를 모른 채 환경변수 하나로 로컬 mock과 dev 게이트웨이를 오갑니다.",
-          "page": 5,
-          "cited": "이 앱은 Argus를 모른 채 환경변수 하나로 로컬 mock과 dev 게이트웨이를 오갑니다."
-        },
-        {
-          "id": "argus-header",
-          "title": "응답 헤더를 먼저 보고 차단 판별",
-          "summary": "게이트웨이가 오류 본문을 감싸 결정 ID가 안 보여서 판별 방식을 바꿨습니다.",
-          "page": 6,
-          "cited": "응답 헤더를 먼저 보고 차단을 판별합니다."
-        },
-        {
-          "id": "argus-result",
-          "title": "dev에서 실제 차단 확인",
-          "summary": "403 실차단이 확인됐고 결정 ID가 화면까지 전달됐습니다.",
-          "page": 7,
-          "cited": "dev 게이트웨이에서 403 실차단이 확인됐고,"
-        }
-      ]
-    },
-    {
-      "id": "ecoreport",
-      "title": "EcoReport",
-      "cards": [
-        {
-          "id": "eco-role",
-          "title": "AI 판별 서버와 백엔드 연동 담당",
-          "summary": "사진 한 장으로 전기 낭비를 제보하는 서비스의 AI 서버를 맡았습니다.",
-          "page": 8,
-          "cited": "저는 AI 판별 서버와 백엔드 연동을 맡았습니다."
-        },
-        {
-          "id": "eco-flow",
-          "title": "3단계로 걸러 AI 호출을 줄임",
-          "summary": "사람이 있거나 강의실이 아니면 Gemini를 부르지 않고 끝냅니다.",
-          "page": 9,
-          "cited": "사람이 있거나 강의실이 아니면 Gemini 호출 없이 종료합니다."
-        },
-        {
-          "id": "eco-model",
-          "title": "에어컨 탐지 모델 검증 결과",
-          "summary": "2,016장으로 직접 학습해 mAP@0.5 약 0.99를 얻었습니다.",
-          "page": 10,
-          "cited": "에어컨 탐지 모델을 2,016장으로 학습해"
-        }
-      ]
-    },
-    {
-      "id": "server",
-      "title": "Server Manager",
-      "cards": [
-        {
-          "id": "server-solo",
-          "title": "GPU 서버 7대를 혼자 구축·운영",
-          "summary": "학내에 아는 사람이 없어 혼자 구축하고 절차를 문서로 남겼습니다.",
-          "page": 11,
-          "cited": "학내에 Linux 네트워크 설정을 아는 사람이 없어"
-        },
-        {
-          "id": "server-gpu",
-          "title": "GPU가 멈추던 원인을 찾음",
-          "summary": "커널 파라미터가 /boot/grub 폴더가 없어 적용되지 않던 점을 해결했습니다.",
-          "page": 13,
-          "cited": "커널 파라미터가 /boot/grub 폴더가 없어 적용되지"
-        },
-        {
-          "id": "server-recovery",
-          "title": "삭제된 프로젝트를 복구",
-          "summary": "이름 없는 조각 파일을 awk 조건 검색으로 골라 핵심 소스를 찾았습니다.",
-          "page": 14,
-          "cited": "이름 없는 조각 파일을 awk 조건 검색"
-        }
-      ]
-    },
-    {
-      "id": "drawmind",
-      "title": "DRAWMIND",
-      "cards": [
-        {
-          "id": "draw-role",
-          "title": "팀장 · DB 설계 · 백엔드",
-          "summary": "기획서를 정리하고 Spring Boot와 PostgreSQL 백엔드를 맡았습니다.",
-          "page": 15,
-          "cited": "저는 팀장으로 기획서를 정리하고 DB 설계와"
-        },
-        {
-          "id": "draw-api",
-          "title": "API 정의서를 먼저 작성",
-          "summary": "프론트와 백엔드가 나눠 개발하기 전에 요청·응답 규칙을 문서로 정했습니다.",
-          "page": 16,
-          "cited": "API 정의서를 먼저 작성했습니다."
-        },
-        {
-          "id": "draw-limit",
-          "title": "한계와 개선",
-          "summary": "비밀번호 해시와 토큰 인증이 없었고, 이후 EcoReport에서 적용했습니다.",
-          "page": 17,
-          "cited": "비밀번호 해시와 토큰 인증이 없었습니다."
-        }
-      ]
-    },
-    {
-      "id": "aeye",
-      "title": "AEye",
-      "cards": [
-        {
-          "id": "aeye-role",
-          "title": "처리 시간 개선 담당",
-          "summary": "Depth 모델 연동과 병렬 추론 구조를 만들었습니다.",
-          "page": 18,
-          "cited": "저는 처리 시간 개선을 맡아 Depth 모델 연동과"
-        },
-        {
-          "id": "aeye-interview",
-          "title": "시각장애인 인터뷰로 기능 확인",
-          "summary": "개발 전 팀원 모두 인터뷰에 참여해 필요한 기능을 확인했습니다.",
-          "page": 18,
-          "cited": "개발 전 팀원 모두 시각장애인 인터뷰에 참여해"
-        },
-        {
-          "id": "aeye-result",
-          "title": "프레임당 약 3.6초에서 평균 830ms로",
-          "summary": "세 모델을 병렬 추론으로 돌려 프레임당 시간을 줄였습니다.",
-          "page": 19,
-          "cited": "순차 합산 약 3.6초 → 평균 830ms"
-        }
-      ]
-    }
-  ]
+  "ko": {
+    "groups": [
+      {
+        "id": "intro",
+        "title": "소개 · 기술 스택",
+        "cards": [
+          {
+            "id": "intro-0",
+            "title": "새로운 방식도 시도하는 사람",
+            "summary": "새 방식을 부담스러워 하지 않고 문제를 해결합니다.",
+            "page": 2,
+            "cited": "코드를 해결하기 위해서는 새로운 방식도 시도하는 것을 부담스러워 하지 않는 사람입니다."
+          },
+          {
+            "id": "intro-1",
+            "title": "사용한 기술",
+            "summary": "Spring Boot로 API와 DB를 설계했습니다.",
+            "page": 5,
+            "cited": "Spring Boot로 API와 DB를 설계했습니다."
+          }
+        ]
+      },
+      {
+        "id": "studyjam",
+        "title": "Google Study Jam",
+        "cards": [
+          {
+            "id": "studyjam-0",
+            "title": "33개 배지 · Gold League",
+            "summary": "2026년 Google Skills에서 Gold League(10,894점)를 달성했습니다.",
+            "page": 7,
+            "cited": "2026년 Google Skills에서 33개 배지와 Gold League(10,894점)를 달성했습니다."
+          },
+          {
+            "id": "studyjam-1",
+            "title": "2024년 AI/ML 스터디잼 수료",
+            "summary": "TensorFlow 이미지 분류와 멀티모달 RAG를 실습했습니다.",
+            "page": 6,
+            "cited": "2024년 Google Cloud AI/ML 스터디잼을 수료했습니다."
+          }
+        ]
+      },
+      {
+        "id": "argus",
+        "title": "ARGUS",
+        "cards": [
+          {
+            "id": "argus-0",
+            "title": "폭주를 재현하는 샘플 에이전트를 맡음",
+            "summary": "4인 팀에서 샘플 에이전트와 채팅 화면을 개발했습니다.",
+            "page": 10,
+            "cited": "4인 팀에서 저는 폭주를 재현하는 샘플 에이전트와 채팅 화면을 개발했습니다."
+          },
+          {
+            "id": "argus-1",
+            "title": "공개 기록 8만 건에서 33.6%가 반복",
+            "summary": "같은 호출의 반복을 지문으로 탐지합니다.",
+            "page": 11,
+            "cited": "공개 기록 8만 건에서 호출의 33.6%가 반복이었습니다."
+          },
+          {
+            "id": "argus-2",
+            "title": "5번째 호출부터 차단, 정상 호출은 통과",
+            "summary": "폭주는 차단되고 정상 호출 10건은 모두 통과했습니다.",
+            "page": 11,
+            "cited": "폭주는 5번째 호출부터 차단, 정상 호출 10건은 모두 통과했습니다."
+          },
+          {
+            "id": "argus-3",
+            "title": "본문이 바뀌어도 응답 헤더로 차단을 읽음",
+            "summary": "실제 게이트웨이에서도 차단이 인식됩니다.",
+            "page": 13,
+            "cited": "게이트웨이가 본문을 바꿔도 응답 헤더로 차단을 읽습니다."
+          },
+          {
+            "id": "argus-4",
+            "title": "판정 지연 p99 2.0~2.9ms",
+            "summary": "kind 클러스터(인증 포함) 동시 1건 기준입니다.",
+            "page": 14,
+            "cited": "kind 클러스터(인증 포함) 동시 1건 p99 2.0~2.9ms였습니다."
+          }
+        ]
+      },
+      {
+        "id": "server",
+        "title": "Server Manager",
+        "cards": [
+          {
+            "id": "server-0",
+            "title": "GPU 서버 7대를 혼자 구축·운영",
+            "summary": "Linux 네트워크 설정을 아는 사람이 없어 혼자 맡았습니다.",
+            "page": 15,
+            "cited": "학과 GPU 서버 7대(RTX 3090 2대, GTX 1080 Ti 5대)를 외부에서도 쓸 수 있게 만들었습니다."
+          },
+          {
+            "id": "server-1",
+            "title": "설정이 적용되지 않던 원인을 찾음",
+            "summary": "/boot/grub 폴더가 없어 파라미터가 적용되지 않았습니다.",
+            "page": 17,
+            "cited": "커널 파라미터가 /boot/grub 폴더가 없어 적용되지 않던 점을 찾아 해결했습니다."
+          },
+          {
+            "id": "server-2",
+            "title": "삭제된 프로젝트를 복구",
+            "summary": "awk 조건 검색으로 핵심 소스를 골라냈습니다.",
+            "page": 18,
+            "cited": "이름 없는 조각 파일을 awk 조건 검색(cv2·numpy·main)으로 골라 핵심 소스를 찾았습니다."
+          }
+        ]
+      },
+      {
+        "id": "drawmind",
+        "title": "DRAWMIND",
+        "cards": [
+          {
+            "id": "drawmind-0",
+            "title": "팀장으로 DB 설계와 백엔드를 맡음",
+            "summary": "Spring Boot, PostgreSQL 기반입니다.",
+            "page": 19,
+            "cited": "저는 팀장으로 기획서를 정리하고 DB 설계와 백엔드(Spring Boot, PostgreSQL)를 맡았습니다."
+          },
+          {
+            "id": "drawmind-1",
+            "title": "API 9개를 결과 코드 표로 통일",
+            "summary": "모두 POST·JSON이고 오류 응답을 통일했습니다.",
+            "page": 20,
+            "cited": "API 9개는 모두 POST·JSON이고, 결과 코드 표로 오류 응답을 통일했습니다."
+          }
+        ]
+      },
+      {
+        "id": "aeye",
+        "title": "AEye",
+        "cards": [
+          {
+            "id": "aeye-0",
+            "title": "개발 전 시각장애인 인터뷰",
+            "summary": "팀원 모두 인터뷰에 참여해 필요한 기능을 확인했습니다.",
+            "page": 22,
+            "cited": "개발 전 팀원 모두 시각장애인 인터뷰에 참여해 필요한 기능을 확인했습니다."
+          },
+          {
+            "id": "aeye-1",
+            "title": "처리 시간 3.6초에서 830ms로",
+            "summary": "병렬 추론 구조로 프레임당 시간을 줄였습니다.",
+            "page": 23,
+            "cited": "순차 합산 약 3.6초 → 평균 830ms"
+          }
+        ]
+      },
+      {
+        "id": "ecoreport",
+        "title": "EcoReport",
+        "cards": [
+          {
+            "id": "ecoreport-0",
+            "title": "사진을 단계별로 걸러 Gemini 호출을 줄임",
+            "summary": "1단계에서 사람이 있으면 호출 없이 종료합니다.",
+            "page": 25,
+            "cited": "1단계 YOLOv8n: 사람이 있거나 강의실이 아니면 Gemini 호출 없이 종료합니다."
+          },
+          {
+            "id": "ecoreport-1",
+            "title": "에어컨 탐지 모델 mAP@0.5 약 0.99",
+            "summary": "2,016장으로 직접 학습했습니다.",
+            "page": 26,
+            "cited": "에어컨 탐지 모델을 2,016장으로 학습해 mAP@0.5 약 0.99를 얻었습니다."
+          }
+        ]
+      },
+      {
+        "id": "nypc",
+        "title": "NYPC",
+        "cards": [
+          {
+            "id": "nypc-0",
+            "title": "예선 37위, 베스트 리플레이상",
+            "summary": "참가 1,000팀 중 4인 팀으로 받았습니다.",
+            "page": 27,
+            "cited": "4인 팀으로 예선 37위(참가 1,000팀 중), 베스트 리플레이상을 받았습니다."
+          },
+          {
+            "id": "nypc-1",
+            "title": "가능한 조합이 63개임을 확인",
+            "summary": "조합별 파라미터를 학습하게 했습니다.",
+            "page": 29,
+            "cited": "저는 AI가 쓴 코드로 실제 조합을 관찰해 63개의 가능성 노드들을 확인했습니다."
+          }
+        ]
+      },
+      {
+        "id": "more",
+        "title": "TalkCompass · MUSEMATE · GridPuzzle",
+        "cards": [
+          {
+            "id": "more-0",
+            "title": "TalkCompass: 기획부터 제출까지 혼자",
+            "summary": "대화·회의 파일로 프롬프트를 만드는 AI 에이전트입니다.",
+            "page": 30,
+            "cited": "저는 기획부터 개발·제출까지 혼자 맡았습니다."
+          },
+          {
+            "id": "more-1",
+            "title": "MUSEMATE: 5인 팀 팀장",
+            "summary": "지도 기능을 개발했습니다.",
+            "page": 32,
+            "cited": "5인 팀의 팀장으로 총괄하고 지도 기능을 개발했습니다."
+          },
+          {
+            "id": "more-2",
+            "title": "GridPuzzle: 7666까지 읽히는 배치",
+            "summary": "유전 알고리즘과 완전 탐색을 결합했습니다.",
+            "page": 34,
+            "cited": "현재 7666까지 읽히는 배치를 찾았습니다."
+          }
+        ]
+      }
+    ]
+  },
+  "en": {
+    "groups": [
+      {
+        "id": "intro",
+        "title": "Intro · Tech Stack",
+        "cards": [
+          {
+            "id": "intro-0",
+            "title": "Not afraid to try new approaches",
+            "summary": "Tries new ways to solve a problem.",
+            "page": 2,
+            "cited": "I am not afraid to try new approaches to solve a problem."
+          },
+          {
+            "id": "intro-1",
+            "title": "Technologies used",
+            "summary": "Designed APIs and a DB with Spring Boot.",
+            "page": 5,
+            "cited": "Designed APIs and a DB with Spring Boot."
+          }
+        ]
+      },
+      {
+        "id": "studyjam",
+        "title": "Google Study Jam",
+        "cards": [
+          {
+            "id": "studyjam-0",
+            "title": "33 badges · Gold League",
+            "summary": "10,894 points on Google Skills in 2026.",
+            "page": 7,
+            "cited": "In 2026 I earned 33 badges and Gold League (10,894 points) on Google Skills."
+          },
+          {
+            "id": "studyjam-1",
+            "title": "Completed the 2024 AI/ML Study Jam",
+            "summary": "Practiced TensorFlow image classification and multimodal RAG.",
+            "page": 6,
+            "cited": "Completed the Google Cloud AI/ML Study Jam in 2024."
+          }
+        ]
+      },
+      {
+        "id": "argus",
+        "title": "ARGUS",
+        "cards": [
+          {
+            "id": "argus-0",
+            "title": "Built the sample agent",
+            "summary": "In a team of 4, built the agent that reproduces the runaway and a chat screen.",
+            "page": 10,
+            "cited": "In a team of 4, I built the sample agent that reproduces the runaway, and a chat screen."
+          },
+          {
+            "id": "argus-1",
+            "title": "33.6% of calls were repeats",
+            "summary": "Found in 80,000 public records.",
+            "page": 11,
+            "cited": "In 80,000 public records, 33.6% of calls were repeats."
+          },
+          {
+            "id": "argus-2",
+            "title": "Blocked from the 5th call",
+            "summary": "Normal calls all passed.",
+            "page": 11,
+            "cited": "The runaway is blocked from the 5th call, and all 10 normal calls passed."
+          },
+          {
+            "id": "argus-3",
+            "title": "Reads blocks from the response header",
+            "summary": "Works even when the gateway rewrites the body.",
+            "page": 13,
+            "cited": "Reads the block from the response header even when the gateway rewrites the body."
+          },
+          {
+            "id": "argus-4",
+            "title": "Decision latency p99 2.0–2.9 ms",
+            "summary": "One concurrent request on a kind cluster with auth.",
+            "page": 14,
+            "cited": "On a kind cluster (with auth), 1 concurrent request gave p99 2.0–2.9 ms."
+          }
+        ]
+      },
+      {
+        "id": "server",
+        "title": "Server Manager",
+        "cards": [
+          {
+            "id": "server-0",
+            "title": "Built and ran 7 GPU servers alone",
+            "summary": "Made them usable from outside campus.",
+            "page": 15,
+            "cited": "Made 7 department GPU servers (2 RTX 3090, 5 GTX 1080 Ti) usable from outside."
+          },
+          {
+            "id": "server-1",
+            "title": "Found why settings did not apply",
+            "summary": "A missing /boot/grub kept parameters from loading.",
+            "page": 17,
+            "cited": "I found kernel parameters were not applied because /boot/grub was missing, and fixed it."
+          },
+          {
+            "id": "server-2",
+            "title": "Recovered a deleted project",
+            "summary": "Found key sources with an awk search.",
+            "page": 18,
+            "cited": "I found the key sources among nameless fragments with an awk condition search (cv2 · numpy · main)."
+          }
+        ]
+      },
+      {
+        "id": "drawmind",
+        "title": "DRAWMIND",
+        "cards": [
+          {
+            "id": "drawmind-0",
+            "title": "Team lead, DB design and backend",
+            "summary": "Spring Boot and PostgreSQL.",
+            "page": 19,
+            "cited": "As team lead, I wrote the plan and owned the DB design and backend (Spring Boot, PostgreSQL)."
+          },
+          {
+            "id": "drawmind-1",
+            "title": "9 APIs with one result-code table",
+            "summary": "All POST · JSON with unified errors.",
+            "page": 20,
+            "cited": "All 9 APIs are POST · JSON, and a result-code table unifies error responses."
+          }
+        ]
+      },
+      {
+        "id": "aeye",
+        "title": "AEye",
+        "cards": [
+          {
+            "id": "aeye-0",
+            "title": "Interviewed visually impaired users first",
+            "summary": "The whole team confirmed needed features.",
+            "page": 22,
+            "cited": "Before development, the whole team joined interviews with visually impaired people to confirm needed features."
+          },
+          {
+            "id": "aeye-1",
+            "title": "3.6 s to 830 ms",
+            "summary": "Parallel inference cut the time per frame.",
+            "page": 23,
+            "cited": "Sequential sum about 3.6 s → 830 ms average"
+          }
+        ]
+      },
+      {
+        "id": "ecoreport",
+        "title": "EcoReport",
+        "cards": [
+          {
+            "id": "ecoreport-0",
+            "title": "Filters photos before calling Gemini",
+            "summary": "Step 1 ends early without a Gemini call.",
+            "page": 25,
+            "cited": "Step 1 YOLOv8n: if people are present or it is not a classroom, end without calling Gemini."
+          },
+          {
+            "id": "ecoreport-1",
+            "title": "Detector mAP@0.5 of about 0.99",
+            "summary": "Trained on 2,016 images.",
+            "page": 26,
+            "cited": "Trained the air-conditioner detector on 2,016 images and reached mAP@0.5 of about 0.99."
+          }
+        ]
+      },
+      {
+        "id": "nypc",
+        "title": "NYPC",
+        "cards": [
+          {
+            "id": "nypc-0",
+            "title": "37th place, Best Replay Award",
+            "summary": "As a team of 4 among 1,000 teams.",
+            "page": 27,
+            "cited": "As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and won the Best Replay Award."
+          },
+          {
+            "id": "nypc-1",
+            "title": "Confirmed 63 possible combinations",
+            "summary": "Learned parameters per combination.",
+            "page": 29,
+            "cited": "Using AI-written code I observed the real combinations and found 63 possible nodes."
+          }
+        ]
+      },
+      {
+        "id": "more",
+        "title": "TalkCompass · MUSEMATE · GridPuzzle",
+        "cards": [
+          {
+            "id": "more-0",
+            "title": "TalkCompass: solo, planning to submission",
+            "summary": "An AI agent that builds prompts from meetings.",
+            "page": 30,
+            "cited": "I handled everything from planning to development and submission alone."
+          },
+          {
+            "id": "more-1",
+            "title": "MUSEMATE: lead of a team of 5",
+            "summary": "Built the map features.",
+            "page": 32,
+            "cited": "As lead of a team of 5, I ran the project and built the map features."
+          },
+          {
+            "id": "more-2",
+            "title": "GridPuzzle: reads up to 7666",
+            "summary": "Genetic algorithm plus brute-force search.",
+            "page": 34,
+            "cited": "I found an arrangement that reads up to 7666."
+          }
+        ]
+      }
+    ]
+  }
 }

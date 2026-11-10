@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CODESEEKER 이은총 포트폴리오",
-  description: "백엔드 개발자 이은총의 포트폴리오를 읽는 자체 제작 PDF 뷰어입니다.",
+  description: "백엔드 개발자 이은총의 포트폴리오(한국어·영어)를 읽는 자체 제작 PDF 뷰어입니다.",
 };
 
 export const viewport: Viewport = {

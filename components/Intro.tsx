@@ -61,8 +61,12 @@ export default function Intro({ onDone }: { onDone: () => void }) {
                 <span>위쪽 검색창에 단어를 입력하면 일치하는 쪽을 찾아 표시합니다.</span>
               </li>
               <li>
+                <b>한국어 / English</b>
+                <span>위쪽 KO·EN 버튼으로 한국어 포트폴리오와 영어 포트폴리오를 바꿔 볼 수 있습니다.</span>
+              </li>
+              <li>
                 <b>쪽 링크</b>
-                <span>주소의 ?p=7처럼 쪽 번호가 들어 있어 특정 쪽을 바로 공유할 수 있습니다.</span>
+                <span>주소의 ?p=3처럼 쪽 번호가 들어 있어 특정 쪽을 바로 공유할 수 있습니다. 영어는 ?lang=en을 붙입니다.</span>
               </li>
               <li>
                 <b>다른 PDF</b>

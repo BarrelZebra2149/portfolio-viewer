@@ -2,29 +2,30 @@
 
 import { useEffect, useState } from "react";
 import data from "@/lib/highlights.json";
+import type { Lang } from "@/lib/portfolio";
 
 export type Card = { id: string; title: string; summary: string; page: number; cited: string };
 export type Group = { id: string; title: string; cards: Card[] };
 
-const DEFAULT_GROUPS = data.groups as Group[];
+const DEFAULT_GROUPS: Record<Lang, Group[]> = { ko: data.ko.groups as Group[], en: data.en.groups as Group[] };
 
 // 올린 문서는 브라우저 저장소를 쓰지 않고, 파일을 열어 둔 동안만 메모리에 읽음 표시를 기억한다.
 const MEMORY = new Map<string, { read: string[]; last: string | null }>();
-const READ_KEY = "cs-read-cards";
-const LAST_KEY = "cs-last-group";
+const readKey = (lang: Lang) => `cs-read-cards-${lang}`;
+const lastKey = (lang: Lang) => `cs-last-group-${lang}`;
 
-function loadRead(): string[] {
+function loadRead(lang: Lang): string[] {
   try {
-    const raw = localStorage.getItem(READ_KEY);
+    const raw = localStorage.getItem(readKey(lang));
     const arr = raw ? JSON.parse(raw) : [];
     return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
   } catch {
     return [];
   }
 }
-function loadLast(): string | null {
+function loadLast(lang: Lang): string | null {
   try {
-    return localStorage.getItem(LAST_KEY);
+    return localStorage.getItem(lastKey(lang));
   } catch {
     return null;
   }
@@ -36,6 +37,7 @@ export default function HighlightPanel({
   groups,
   note,
   memoryKey,
+  lang = "ko",
 }: {
   onPick: (card: Card) => void;
   onClose: () => void;
@@ -43,8 +45,9 @@ export default function HighlightPanel({
   groups?: Group[];
   note?: string;
   memoryKey?: string;
+  lang?: Lang;
 }) {
-  const GROUPS = groups ?? DEFAULT_GROUPS;
+  const GROUPS = groups ?? DEFAULT_GROUPS[lang];
   const persist = !groups;
   const [read, setRead] = useState<string[]>([]);
   const [last, setLast] = useState<string | null>(null);
@@ -60,8 +63,8 @@ export default function HighlightPanel({
       }
       return;
     }
-    const r = loadRead();
-    const l = loadLast();
+    const r = loadRead(lang);
+    const l = loadLast(lang);
     setRead(r);
     setLast(l);
     if (l && GROUPS.some((g) => g.id === l)) setActive(l);
@@ -89,8 +92,8 @@ export default function HighlightPanel({
       return;
     }
     try {
-      localStorage.setItem(READ_KEY, JSON.stringify(next));
-      localStorage.setItem(LAST_KEY, group.id);
+      localStorage.setItem(readKey(lang), JSON.stringify(next));
+      localStorage.setItem(lastKey(lang), group.id);
     } catch {
       /* 저장소를 못 써도 동작한다 */
     }
@@ -101,8 +104,8 @@ export default function HighlightPanel({
     <section className="hl" role="dialog" aria-label="핵심 보기">
       <header className="hl-head">
         <div>
-          <h2>핵심 보기</h2>
-          <p>{note ?? "프로젝트별 핵심을 고르면 해당 쪽으로 이동해 근거 문장을 표시합니다."}</p>
+          <h2>{lang === "en" ? "Highlights" : "핵심 보기"}</h2>
+          <p>{note ?? (lang === "en" ? "Pick a highlight to jump to its page and mark the source line." : "프로젝트별 핵심을 고르면 해당 쪽으로 이동해 근거 문장을 표시합니다.")}</p>
         </div>
         <button className="iconbtn" onClick={onClose} aria-label="닫기">
           ✕
@@ -119,8 +122,8 @@ export default function HighlightPanel({
                 <button className={`hl-group${g.id === active ? " on" : ""}`} onClick={() => setActive(g.id)}>
                   <span className="hl-gtitle">{g.title}</span>
                   <span className="hl-gmeta">
-                    {done ? <b className="badge done">확인 완료</b> : <>읽은 핵심 {n}/{g.cards.length}</>}
-                    {g.id === last && !done && <b className="badge">마지막으로 본 곳</b>}
+                    {done ? <b className="badge done">{lang === "en" ? "All read" : "확인 완료"}</b> : <>{lang === "en" ? "Read" : "읽은 핵심"} {n}/{g.cards.length}</>}
+                    {g.id === last && !done && <b className="badge">{lang === "en" ? "Last viewed" : "마지막으로 본 곳"}</b>}
                   </span>
                 </button>
               </li>
@@ -134,8 +137,8 @@ export default function HighlightPanel({
             return (
               <button key={c.id} className={`hl-card${isRead ? " read" : ""}`} onClick={() => pick(c)}>
                 <span className="hl-ctop">
-                  <span className="hl-page">{c.page}쪽</span>
-                  {isRead && <span className="hl-check" aria-label="읽음">✓ 읽음</span>}
+                  <span className="hl-page">{lang === "en" ? `p.${c.page}` : `${c.page}쪽`}</span>
+                  {isRead && <span className="hl-check" aria-label="읽음">{lang === "en" ? "✓ Read" : "✓ 읽음"}</span>}
                 </span>
                 <strong style={{ fontSize: c.title.length > 44 ? 14.5 : c.title.length > 28 ? 15.5 : 17 }}>{c.title}</strong>
                 <span className="hl-sum">{c.summary}</span>
