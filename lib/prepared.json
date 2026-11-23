@@ -294,17 +294,17 @@
    "nypc",
    "넥슨",
    "대전",
-   "베스트 리플레이",
+   "우수 리플레이",
    "nexon",
    "xml",
    "llm 활용"
   ],
   "ko": {
-   "text": "NYPC는 넥슨이 개최한 LLM 활용 대회로, 팀이 만든 AI 에이전트끼리 대전합니다. 팀원은 오프닝·위협도 계산·빠른 공격 로직을, 저는 스펙 정리와 코드 생성, 학습 구조를 맡았습니다. 4인 팀으로 예선 37위(참가 1,000팀 중)와 베스트 리플레이상을 받았습니다. 규칙을 마크다운 스펙 문서로 바꾸고 XML 태그 기반 프롬프트로 코드를 쓰게 했으며, (N, K) 조합이 63개임을 확인해 조합별 파라미터를 학습하게 했습니다.",
+   "text": "NYPC는 넥슨이 개최한 LLM 활용 대회로, 팀이 만든 AI 에이전트끼리 대전합니다. 팀원은 오프닝·위협도 계산·빠른 공격 로직을, 저는 스펙 정리와 코드 생성, 학습 구조를 맡았습니다. 4인 팀으로 예선 37위(참가 1,000팀 중)와 우수 리플레이에 선정되었습니다. 규칙을 마크다운 스펙 문서로 바꾸고 XML 태그 기반 프롬프트로 코드를 쓰게 했으며, (N, K) 조합이 63개임을 확인해 조합별 파라미터를 학습하게 했습니다.",
    "cites": [
     {
      "page": 27,
-     "text": "4인 팀으로 예선 37위(참가 1,000팀 중), 베스트 리플레이상을 받았습니다."
+     "text": "4인 팀으로 예선 37위(참가 1,000팀 중), 우수 리플레이에 선정되었습니다."
     },
     {
      "page": 28,
@@ -317,11 +317,11 @@
    ]
   },
   "en": {
-   "text": "NYPC is a contest hosted by Nexon on using LLMs, where teams' AI agents battle. Teammates built the opening, threat scoring, and fast-attack logic; I handled the spec, code generation, and learning structure. As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and won the Best Replay Award. I turned the rules into a Markdown spec, had the LLM write code from XML-tag prompts, and found 63 combinations whose parameters are learned separately.",
+   "text": "NYPC is a contest hosted by Nexon on using LLMs, where teams' AI agents battle. Teammates built the opening, threat scoring, and fast-attack logic; I handled the spec, code generation, and learning structure. As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and were selected for Outstanding Replay. I turned the rules into a Markdown spec, had the LLM write code from XML-tag prompts, and found 63 combinations whose parameters are learned separately.",
    "cites": [
     {
      "page": 27,
-     "text": "As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and won the Best Replay Award."
+     "text": "As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and were selected for Outstanding Replay."
     },
     {
      "page": 28,
@@ -582,7 +582,7 @@
    "best"
   ],
   "ko": {
-   "text": "가장 눈에 띄는 성과는 ARGUS 검증(공개 기록 8만 건에서 호출의 33.6%가 반복, 폭주는 5번째 호출부터 차단)입니다. AEye에서는 처리 시간을 순차 합산 약 3.6초에서 평균 830ms로 줄였고, EcoReport의 에어컨 탐지 모델은 mAP@0.5 약 0.99를 얻었습니다. NYPC에서는 4인 팀으로 예선 37위(참가 1,000팀 중)와 베스트 리플레이상을 받았습니다.",
+   "text": "가장 눈에 띄는 성과는 ARGUS 검증(공개 기록 8만 건에서 호출의 33.6%가 반복, 폭주는 5번째 호출부터 차단)입니다. AEye에서는 처리 시간을 순차 합산 약 3.6초에서 평균 830ms로 줄였고, EcoReport의 에어컨 탐지 모델은 mAP@0.5 약 0.99를 얻었습니다. NYPC에서는 4인 팀으로 예선 37위(참가 1,000팀 중)와 우수 리플레이에 선정되었습니다.",
    "cites": [
     {
      "page": 11,
@@ -598,12 +598,12 @@
     },
     {
      "page": 27,
-     "text": "4인 팀으로 예선 37위(참가 1,000팀 중), 베스트 리플레이상을 받았습니다."
+     "text": "4인 팀으로 예선 37위(참가 1,000팀 중), 우수 리플레이에 선정되었습니다."
     }
    ]
   },
   "en": {
-   "text": "My most notable results are the ARGUS validation (33.6% of calls were repeats in 80,000 public records, with the runaway blocked from the 5th call), AEye, where I cut the sequential sum of about 3.6 s to 830 ms on average, and EcoReport's air-conditioner detector at mAP@0.5 of about 0.99. In NYPC, as a team of 4, we placed 37th of 1,000 teams and won the Best Replay Award.",
+   "text": "My most notable results are the ARGUS validation (33.6% of calls were repeats in 80,000 public records, with the runaway blocked from the 5th call), AEye, where I cut the sequential sum of about 3.6 s to 830 ms on average, and EcoReport's air-conditioner detector at mAP@0.5 of about 0.99. In NYPC, as a team of 4, we placed 37th of 1,000 teams and were selected for Outstanding Replay.",
    "cites": [
     {
      "page": 11,
@@ -619,7 +619,7 @@
     },
     {
      "page": 27,
-     "text": "As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and won the Best Replay Award."
+     "text": "As a team of 4 we placed 37th in the qualifier (of 1,000 teams) and were selected for Outstanding Replay."
     }
    ]
   }
